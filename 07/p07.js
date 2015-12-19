@@ -33,52 +33,7 @@ module.exports = (function () {
         assert(op !== op);
     }
 
-    /*
-    function evaluate_statement(stmt, wires, level) {
-        var stmt;
-
-        if (stmt.type === 'int') {
-            assert(stmt.hasOwnProperty('value'));
-            return stmt;
-        }
-
-        if (stmt.type === 'wire') {
-            assert(stmt.hasOwnProperty('value'));
-            assert(wires.hasOwnProperty(stmt.value));
-            return evaluate_statement(wires[stmt.value], wires, level + 1);
-        }
-
-        if (stmt.type === 'unop') {
-            assert(stmt.op === 'NOT');
-            assert(stmt.hasOwnProperty('arg'));
-            return {
-                type: 'int',
-                value: bitwise_inverse(
-                    evaluate_statement(stmt.arg, wires, level + 1)
-                )
-            };
-        }
-
-        if (stmt.type === 'binop') {
-            assert(stmt.hasOwnProperty('left'));
-            assert(stmt.hasOwnProperty('right'));
-            assert(stmt.hasOwnProperty('op'));
-            return {
-                type: 'int',
-                value: do_a_binop(
-                    evaluate_statement(stmt.left, wires, level + 1).value,
-                    stmt.op,
-                    evaluate_statement(stmt.right, wires, level + 1).value
-                )
-            };
-        }
-
-        // lol
-        assert(stmt !== stmt);
-    }
-    */
-
-    function evaluate_expression(expr, wires, level) {
+    function evaluate_expression(expr, level) {
         var left, right, result;
 
         // console.log(Array(level + 1).join("    "), level, expr);
@@ -90,9 +45,9 @@ module.exports = (function () {
         if (expr.type === 'unop') {
             assert(expr.hasOwnProperty('op'));
             assert(expr.hasOwnProperty('arg'));
-            assert(expr.op == 'NOT');
+            assert(expr.op === 'NOT');
 
-            result = evaluate_expression(expr.arg, wires, level + 1);
+            result = evaluate_expression(expr.arg, level + 1);
 
             return {
                 type: 'int',
@@ -105,8 +60,8 @@ module.exports = (function () {
             assert(expr.hasOwnProperty('right'));
             assert(expr.hasOwnProperty('op'));
 
-            left = evaluate_expression(expr.left, wires, level + 1);
-            right = evaluate_expression(expr.right, wires, level + 1);
+            left = evaluate_expression(expr.left, level + 1);
+            right = evaluate_expression(expr.right, level + 1);
 
             return {
                 type: 'int',
@@ -114,9 +69,9 @@ module.exports = (function () {
             };
         }
 
-        if (expr.type == 'wire') {
+        if (expr.type === 'wire') {
             assert(expr.hasOwnProperty('value'));
-            result = evaluate_expression(wires[expr.value], wires, level + 1);
+            result = evaluate_expression(wires[expr.value], level + 1);
             // console.log('found a wire', expr.value, 'with value', result);
             return result;
         }
@@ -128,7 +83,7 @@ module.exports = (function () {
         for (wire_name in wires) {
             if (wires.hasOwnProperty(wire_name)) {
                 console.log('evaluating', wire_name);
-                result = evaluate_expression(wires[wire_name], wires, 0);
+                result = evaluate_expression(wires[wire_name], 0);
                 console.log(wire_name, 'result', result);
                 wires[wire_name] = result;
             }
