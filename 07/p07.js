@@ -1,6 +1,6 @@
 module.exports = (function () {
     "use strict";
-    var assert, wires;
+    var assert, wires, evaluate_wire;
 
     assert = require('assert');
 
@@ -75,7 +75,13 @@ module.exports = (function () {
             // console.log('found a wire', expr.value, 'with value', result);
             return result;
         }
+
+        assert(expr !== expr);
     }
+
+    evaluate_wire = function (wire_name, level) {
+        return evaluate_expression(wires[wire_name], level);
+    };
 
     function evaluate_all_the_statements() {
         var wire_name, result;
@@ -83,7 +89,7 @@ module.exports = (function () {
         for (wire_name in wires) {
             if (wires.hasOwnProperty(wire_name)) {
                 console.log('evaluating', wire_name);
-                result = evaluate_expression(wires[wire_name], 0);
+                result = evaluate_wire(wire_name, 0);
                 console.log(wire_name, 'result', result);
                 wires[wire_name] = result;
             }
