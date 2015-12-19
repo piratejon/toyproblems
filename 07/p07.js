@@ -71,7 +71,7 @@ module.exports = (function () {
 
         if (expr.type === 'wire') {
             assert(expr.hasOwnProperty('value'));
-            result = evaluate_expression(wires[expr.value], level + 1);
+            result = evaluate_wire(expr.value, level + 1);
             // console.log('found a wire', expr.value, 'with value', result);
             return result;
         }
@@ -80,7 +80,11 @@ module.exports = (function () {
     }
 
     evaluate_wire = function (wire_name, level) {
-        return evaluate_expression(wires[wire_name], level);
+        if (wires[wire_name].type !== 'int') {
+            wires[wire_name] = evaluate_expression(wires[wire_name], level);
+        }
+
+        return wires[wire_name];
     };
 
     function evaluate_all_the_statements() {
