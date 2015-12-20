@@ -46,12 +46,48 @@ int count_raw_bytes(const char * line) {
   return bytes - 2;
 }
 
+int count_quoted_bytes(const char * line) {
+  char * cur;
+  int bytes;
+
+  for (bytes = 0, cur = line; cur && *cur && *cur != '\n'; cur += 1) {
+    switch (*cur) {
+      case '\\':
+        if ((cur + 1) && *(cur + 1) == '\\') {
+          cur += 1;
+          // quoted "\\" -> "\\\\"
+          bytes += 4;
+        } else if ((cur + 1) && *(cur + 1) == '"') {
+          cur += 1;
+          // quoted "\\" -> "\\\\"
+          bytes += 4;
+        } else if ((cur + 1) && *(cur + 1) == 'x') {
+          if ((cur + 2) && is_lower_hex_ascii(*(cur + 2)) && is_lower_hex_ascii(*(cur + 3))) {
+            cur += 3;
+            // quoted "\xAB" -> "\\xAB"
+            bytes += 5;
+          }
+        } else {
+          printf("invalid jank %c%c%c%c at line %d pos %ld\n", cur ? *cur : '_', (cur + 1) ? *(cur + 1) : '_', (cur + 2) ? *(cur + 2) : '_', (cur + 3) ? *(cur + 3) : '_', lineno, cur - line + 1);
+          exit(1);
+        }
+        break;
+      default:
+        // normal char does not get quoted
+        bytes += 1;
+    }
+  }
+
+  // add the escaped initial and terminal double quotes
+  return bytes + 4;
+}
+
 int main(int arfc, char ** arfv) {
 
   char line[999];
   // size_t consumed;
   FILE * fin;
-  int code_bytes, raw_bytes;
+  int code_bytes, raw_bytes, quoted_bytes;
 
   fin = fopen(arfv[1], "r");
 
@@ -60,16 +96,17 @@ int main(int arfc, char ** arfv) {
     exit(1);
   }
 
-  code_bytes = raw_bytes = 0;
+  code_bytes = raw_bytes = quoted_bytes = 0;
 
   lineno = 0;
   while (NULL != fgets(line, sizeof(line), fin)) {
       lineno += 1;
       code_bytes += count_code_bytes(line);
       raw_bytes += count_raw_bytes(line);
+      quoted_bytes += count_quoted_bytes(line);
   }
 
-  printf("code bytes: %d\nraw bytes: %d\ndifference: %d\n", code_bytes, raw_bytes, code_bytes - raw_bytes);
+  printf("code bytes: %d\nraw bytes: %d\ndifference: %d\nquoted bytes: %d\ndifference: %d\n", code_bytes, raw_bytes, code_bytes - raw_bytes, quoted_bytes, quoted_bytes - code_bytes);
 
   fclose(fin);
 
