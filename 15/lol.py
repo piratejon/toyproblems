@@ -19,7 +19,7 @@ def score_up(costs, qty):
             weight *= max(0, sum([qty[k] * costs[factor][k] for k in qty]))
     return weight
 
-def goofy_ass_walk(costs, ingreds, a_hundred):
+def goofy_ass_walk(costs, ingreds, max_teaspoons, calorie_target):
     """Try to increase things that improve the objective function?"""
     # make an initial guess that adds up to 100
 
@@ -27,8 +27,8 @@ def goofy_ass_walk(costs, ingreds, a_hundred):
     while initial_score == 0:
         guesslist = [random.random() for _ in ingreds]
         scale = sum(guesslist)
-        guesslist = [int(a_hundred  * _ / scale) for _ in guesslist]
-        guesslist[-1] = a_hundred - sum(guesslist[:-1])
+        guesslist = [int(max_teaspoons * _ / scale) for _ in guesslist]
+        guesslist[-1] = max_teaspoons - sum(guesslist[:-1])
         guess = {
 #        _: int(a_hundred / len(ingreds)) for _ in ingreds
             k: v for k, v in zip(ingreds, guesslist)
@@ -38,10 +38,10 @@ def goofy_ass_walk(costs, ingreds, a_hundred):
     print('initial guess', guess, initial_score)
 
     while True:
-        current_best = score_up(costs, guess)
+        initial_score = current_best = score_up(costs, guess)
         for i in ingreds:
             for j in ingreds:
-                if i != j and guess[i] < 100 and guess[j] > 0:
+                if i != j and guess[i] < max_teaspoons and guess[j] > 0:
                     guess[i] += 1
                     guess[j] -= 1
                     trial_score = score_up(costs, guess)
@@ -69,7 +69,7 @@ def main():
                 costs[c] = {}
             costs[c][k] = w
 
-    result = goofy_ass_walk(costs, ingred.keys(), 100)
+    result = goofy_ass_walk(costs, ingred.keys(), 100, 500)
     print(result, score_up(costs, result)) 
 
 if __name__ == '__main__':
