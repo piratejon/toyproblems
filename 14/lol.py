@@ -11,7 +11,8 @@ def parse_line(line):
             'recovery_time': int(w[-2]),
             'stamina': int(w[6]),
             'recovering': 0,
-            'distance': 0
+            'distance': 0,
+            'points': 0
         }
     }
 
@@ -26,6 +27,13 @@ def off_to_the_races(config, n):
                 if config[reindeer]['recovering'] == config[reindeer]['recovery_time']:
                     config[reindeer]['stamina'] = config[reindeer]['total_stamina']
                     config[reindeer]['recovering'] = 0
+
+        max_dist = max([config[r]['distance'] for r in config])
+
+        for reindeer in config:
+            if config[reindeer]['distance'] == max_dist:
+                config[reindeer]['points'] += 1
+
     return config
 
 def main():
@@ -35,7 +43,7 @@ def main():
 
     results = off_to_the_races(config, 2503)
 
-    print(sorted({results[r]['distance']: r for r in results}))
+    print(sorted({results[r]['points']: r for r in results}))
 
 if __name__ == '__main__':
     main()
