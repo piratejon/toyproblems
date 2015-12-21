@@ -39,12 +39,14 @@ def parse_line(line):
     return (words[0], words[3], words[-1])
 
 def main():
-    matrix = {}
+    matrix = {'me': {}}
     for line in fileinput.input():
         values = parse_line(line)
         if values[0] not in matrix:
             matrix[values[0]] = {}
         matrix[values[0]][values[2]] = values[1]
+        matrix['me'][values[0]] = 0
+        matrix[values[0]]['me'] = 0
 
     print(line_em_up(matrix))
 
