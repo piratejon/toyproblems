@@ -33,18 +33,18 @@ int count_on_neighbors (char (*grid)[100][100], int I, int J) {
 
   count = 0;
 
-  // printf("counting neighbors for (%d,%d):\n", I, J);
+  // // printf("counting neighbors for (%d,%d):\n", I, J);
 
   for (i = I - 1; i <= I + 1; i += 1) {
     for (j = J - 1; j <= J + 1; j += 1) {
       if ((i != I || j != J) && i >= 0 && j >= 0 && i < 100 && j < 100 && (*grid)[i][j] == '#') {
-        // printf("  (%d,%d) is on\n", i, j);
+        // // printf("  (%d,%d) is on\n", i, j);
         count += 1;
       }
     }
   }
 
-  // printf("  (%d,%d) has %d on neighbors\n", I, J, count);
+  // // printf("  (%d,%d) has %d on neighbors\n", I, J, count);
 
   return count;
 }
@@ -89,6 +89,10 @@ void do_steps(char (*current)[100][100], char (*new)[100][100]) {
       // printf(" (%d)\n", count);
     }
   }
+  (*new)[0][0] = '#';
+  (*new)[0][100 - 1] = '#';
+  (*new)[100 - 1][0] = '#';
+  (*new)[100 - 1][100 - 1] = '#';
 }
 
 void do_a_bunch_of_steps(int i) {
@@ -105,7 +109,6 @@ void do_a_bunch_of_steps(int i) {
     lights_b = lights_tmp;
   }
   printf("%d\n", count_on(lights_a));
-  printf("%d\n", count_on(lights_b));
 }
 
 void init_board(char (*g)[100][100]) {
@@ -115,11 +118,20 @@ void init_board(char (*g)[100][100]) {
       (*g)[i][j] = '.';
     }
   }
+
+  (*g)[0][0] = '#';
+  (*g)[0][100 - 1] = '#';
+  (*g)[100 - 1][0] = '#';
+  (*g)[100 - 1][100 - 1] = '#';
 }
 
 int main (int arfc, char ** arfv) {
 
   load_data_file(arfv[1], &LIGHTS_A);
+  LIGHTS_A[0][0] = '#';
+  LIGHTS_A[0][100 - 1] = '#';
+  LIGHTS_A[100 - 1][0] = '#';
+  LIGHTS_A[100 - 1][100 - 1] = '#';
 
   init_board(&LIGHTS_B);
 
