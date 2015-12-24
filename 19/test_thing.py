@@ -11,9 +11,9 @@ class TestP19(unittest.TestCase):
         p.add_replacement('H', 'HO')
         p.add_replacement('H', 'OH')
         p.add_replacement('O', 'HH')
-        p.do_it_to_it('HOH')
+        p.do_part1('HOH')
         self.assertEqual(p.molecules, {'HOOH', 'HOHO', 'OHOH', 'HHHH'})
-        p.do_it_to_it('HOHOHO')
+        p.do_part1('HOHOHO')
         self.assertEqual(len(p.molecules), 7)
 
     def test_rednose(self):
@@ -27,6 +27,8 @@ class TestP19(unittest.TestCase):
         self.assertEqual(p.pieces('HOH', 0), {1: {'e'}, 2: {'H'}})
         self.assertEqual(p.pieces('HOH', 1), {1: {'e'}, 2: {'H'}})
         self.assertEqual(p.pieces('HOH', 2), {1: {'e'}})
+
+        self.assertEqual(p.replacements['e'], {'H', 'O'})
 
     def test_ruffian(self):
         p = p19.P19()
@@ -44,6 +46,7 @@ class TestP19(unittest.TestCase):
         self.assertEqual(len(instr), 468)
 
         self.assertEqual(p.pieces(instr, 3), {4: {'Si'}})
+        self.assertEqual(p.pieces('BFFBF', 0), {2: {'Mg'}})
         self.assertEqual(p.pieces('BFFBF', 3), {2: {'Mg'}})
 
 if __name__ == '__main__':
