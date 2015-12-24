@@ -34,7 +34,7 @@ class P19:
 
     def pieces(self, string, pos):
         self.piecebag = {}
-        for i in range(len(string) - pos):
+        for i in range(len(string) - pos + 1):
             if string[pos:pos+i] in self.invreplacements:
                 if i not in self.piecebag:
                     self.piecebag[i] = set()

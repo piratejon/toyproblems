@@ -24,9 +24,9 @@ class TestP19(unittest.TestCase):
         p.add_replacement('H', 'OH')
         p.add_replacement('O', 'HH')
 
-#        self.assertEqual(p.pieces('HOH', 0), {'e': {'H'}, 'H': {'HO'}})
-#        self.assertEqual(p.pieces('HOH', 1), {'e': {'O'}, 'H': {'OH'}})
-#        self.assertEqual(p.pieces('HOH', 2), {'e': {'H'}})
+        self.assertEqual(p.pieces('HOH', 0), {1: {'e'}, 2: {'H'}})
+        self.assertEqual(p.pieces('HOH', 1), {1: {'e'}, 2: {'H'}})
+        self.assertEqual(p.pieces('HOH', 2), {1: {'e'}})
 
     def test_ruffian(self):
         p = p19.P19()
