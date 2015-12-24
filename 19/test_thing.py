@@ -44,6 +44,7 @@ class TestP19(unittest.TestCase):
         self.assertEqual(len(instr), 468)
 
         self.assertEqual(p.pieces(instr, 3), {4: {'Si'}})
+        self.assertEqual(p.pieces('BFFBF', 3), {2: {'Mg'}})
 
 if __name__ == '__main__':
     unittest.main()
