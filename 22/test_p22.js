@@ -117,6 +117,14 @@ describe('p22_part1', function () {
             assert.equal(game.p1.mana, 21);
             assert.equal(game.p2.hp, 14);
             assert.deepEqual(game.effects, [{spell: 'Recharge', ttl: 5, caster: game.p1}]);
+
+            // turn 2
+            game.apply_effects();
+            assert.equal(game.p1.hp, 10);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 122);
+            assert.equal(game.p2.hp, 14);
+            assert.deepEqual(game.effects, [{spell: 'Recharge', ttl: 4, caster: game.p1}]);
         });
     });
 });

@@ -124,6 +124,7 @@ module.exports = (function () {
 
         for (i = 0; i < this.effects.length; i += 1) {
             effect = this.effects[i];
+            effect.ttl -= 1;
             spell = Spells[effect.spell];
             assert.equal(spell.type, 'effect');
             for (j = 0; j < spell.impact.length; j += 1) {
