@@ -159,7 +159,12 @@ describe('p22_part1', function () {
                 {spell: 'Recharge', ttl: 2, caster: game.p1},
                 {spell: 'Shield', ttl: 5, caster: game.p1}
             ]);
-
+            game.attack({player: game.p2, target: game.p1});
+            assert.equal(game.p1.hp, 1);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 211);
+            assert.equal(game.p2.hp, 14);
         });
     });
 });
