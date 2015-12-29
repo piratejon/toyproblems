@@ -236,6 +236,35 @@ describe('p22_part1', function () {
             assert.equal(game.p1.effective_armor, 7);
             assert.equal(game.p1.mana, 167);
             assert.equal(game.p2.hp, 9);
+
+            // turn 9
+            game.apply_effects();
+            assert.equal(game.p1.hp, 1);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 167);
+            assert.equal(game.p2.hp, 6);
+            assert.deepEqual(game.effects, [
+                {spell: 'Shield', ttl: 0, caster: game.p1},
+                {spell: 'Poison', ttl: 4, caster: game.p1, target: game.p2}
+            ]);
+            game.cast({caster: game.p1, target: game.p2, spell: 'Magic Missile'});
+            assert.equal(game.p1.hp, 1);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 114);
+            assert.equal(game.p2.hp, 2);
+
+            // turn 10
+            game.apply_effects();
+            assert.equal(game.p1.hp, 1);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 114);
+            assert.equal(game.p2.hp, -1);
+            assert.deepEqual(game.effects, [
+                {spell: 'Poison', ttl: 3, caster: game.p1, target: game.p2}
+            ]);
         });
     });
 });
