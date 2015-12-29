@@ -91,6 +91,33 @@ describe('p22_part1', function () {
             assert.equal(game.p1.mana, 24);
             assert.equal(game.p2.mana, 0);
         });
+
+        it('plays the second example', function () {
+            var game, player, boss;
+
+            player = new p22.Player({hp: 10, armor: 0, mana: 250, dmg: 0});
+            boss = new p22.Player({hp: 14, armor: 0, mana: 0, dmg: 8});
+
+            game = new p22.Game({p1: player, p2: boss});
+
+            // initial state
+            assert.equal(game.p1.hp, 10);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 250);
+            assert.equal(game.p2.hp, 14);
+            assert.deepEqual(game.effects, []);
+
+            // no effects at first
+            game.apply_effects();
+
+            // turn 1
+            game.cast({caster: game.p1, spell: 'Recharge'});
+            assert.equal(game.p1.hp, 10);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 21);
+            assert.equal(game.p2.hp, 14);
+            assert.deepEqual(game.effects, [{spell: 'Recharge', ttl: 5, caster: game.p1}]);
+        });
     });
 });
 
