@@ -129,11 +129,11 @@ module.exports = (function () {
             effect.ttl -= 1;
             if (effect.ttl >= 0) {
                 new_effects.push(effect);
-            }
-            spell = Spells[effect.spell];
-            assert.equal(spell.type, 'effect');
-            for (j = 0; j < spell.impact.length; j += 1) {
-                this.apply_effect_impact(effect[spell.impact[j].player], spell.impact[j]);
+                spell = Spells[effect.spell];
+                assert.equal(spell.type, 'effect');
+                for (j = 0; j < spell.impact.length; j += 1) {
+                    this.apply_effect_impact(effect[spell.impact[j].player], spell.impact[j]);
+                }
             }
         }
 
