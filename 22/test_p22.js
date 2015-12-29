@@ -43,17 +43,29 @@ describe('p22_part1', function () {
             // initial state
             assert.equal(game.p1.hp, 10);
             assert.equal(game.p1.armor, 0);
-            assert.equal(game.effective_armor(game.p1), 0);
             assert.equal(game.p1.mana, 250);
             assert.equal(game.p2.hp, 13);
             assert.deepEqual(game.effects, []);
 
             // no effects at first
             game.apply_effects();
-            game.cast({caster: game.p1, spell: 'Poison'});
 
-            assert.deepEqual(game.effects, [{spell: 'Poison', ttl: 6, caster: game.p1}]);
+            // turn 1
+            game.cast({caster: game.p1, spell: 'Poison', target: game.p2});
+            assert.deepEqual(game.effects, [{spell: 'Poison', ttl: 6, caster: game.p1, target: game.p2}]);
             assert.equal(game.p1, game.effects[0].caster);
+            assert.equal(game.p2, game.effects[0].target);
+
+            // turn 2
+            assert.equal(game.p1.hp, 10);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 77);
+            assert.equal(game.p2.hp, 13);
+            game.apply_effects();
+            assert.equal(game.p1.hp, 10);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 77);
+            assert.equal(game.p2.hp, 10);
         });
     });
 });

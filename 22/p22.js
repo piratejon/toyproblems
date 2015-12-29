@@ -1,7 +1,9 @@
 "use strict";
 
 module.exports = (function () {
-    var Player, Game, Spells;
+    var Player, Game, Spells, assert;
+
+    assert = require('assert');
 
     Spells = {
         'Magic Missile': {
@@ -11,6 +13,7 @@ module.exports = (function () {
                 {
                     player: 'target',
                     stat: 'dmg',
+                    type: 'real',
                     delta: -4
                 }
             ]
@@ -22,11 +25,13 @@ module.exports = (function () {
                 {
                     player: 'target',
                     stat: 'dmg',
+                    type: 'real',
                     delta: -2
                 },
                 {
                     player: 'caster',
                     stat: 'hp',
+                    type: 'real',
                     delta: 2
                 }
             ]
@@ -39,6 +44,7 @@ module.exports = (function () {
                 {
                     player: 'caster',
                     stat: 'armor',
+                    type: 'effective',
                     delta: 7
                 }
             ]
@@ -51,6 +57,7 @@ module.exports = (function () {
                 {
                     player: 'target',
                     stat: 'hp',
+                    type: 'real',
                     delta: -3
                 }
             ]
@@ -63,6 +70,7 @@ module.exports = (function () {
                 {
                     player: 'caster',
                     stat: 'mana',
+                    type: 'real',
                     delta: 101
                 }
             ]
@@ -101,11 +109,26 @@ module.exports = (function () {
         delete this.game_properties;
     };
 
-    Game.prototype.effective_armor = function (player) {
-        return player.armor;
-    };
-
     Game.prototype.apply_effects = function () {
+        var i, j, effect, spell, impact, player;
+
+        for (i = 0; i < this.effects.length; i += 1) {
+            effect = this.effects[i];
+            spell = Spells[effect.spell];
+            assert.equal(spell.type, 'effect');
+            for (j = 0; j < spell.impact.length; j += 1) {
+                impact = spell.impact[j];
+                console.log('trying to apply effect impact', impact);
+                if (impact.type === 'real') {
+                    console.log(this.effect);
+                    effect[impact.player][impact.stat] += impact.delta;
+                } else if (impact.type === 'effective') {
+                    effect[impact.player]['effective_' + impact.stat] = effect[impact.player][impact.stat] + impact.delta;
+                } else {
+                    assert(false);
+                }
+            }
+        }
     };
 
     Game.prototype.cast = function (args) {
@@ -121,9 +144,14 @@ module.exports = (function () {
             }
         }
 
-        casting.ttl = Spells[args.spell].duration;
+        // decrement caster mana
+        casting.caster.mana -= Spells[casting.spell].cost;
 
-        this.effects.push(casting);
+        // set duration and append to effects if necessary
+        if (Spells[args.spell].type === 'effect') {
+            casting.ttl = Spells[args.spell].duration;
+            this.effects.push(casting);
+        }
     };
 
     return {
