@@ -218,6 +218,24 @@ describe('p22_part1', function () {
             assert.equal(game.p1.effective_armor, 7);
             assert.equal(game.p1.mana, 167);
             assert.equal(game.p2.hp, 12);
+
+            // turn 8
+            game.apply_effects();
+            assert.equal(game.p1.hp, 2);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 167);
+            assert.equal(game.p2.hp, 9);
+            assert.deepEqual(game.effects, [
+                {spell: 'Shield', ttl: 1, caster: game.p1},
+                {spell: 'Poison', ttl: 5, caster: game.p1, target: game.p2}
+            ]);
+            game.attack({player: game.p2, target: game.p1});
+            assert.equal(game.p1.hp, 1);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 167);
+            assert.equal(game.p2.hp, 9);
         });
     });
 });
