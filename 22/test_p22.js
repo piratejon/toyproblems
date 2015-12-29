@@ -66,6 +66,30 @@ describe('p22_part1', function () {
             assert.equal(game.p1.armor, 0);
             assert.equal(game.p1.mana, 77);
             assert.equal(game.p2.hp, 10);
+            game.attack({player: game.p2, target: game.p1});
+
+            // turn 3
+            assert.equal(game.p1.hp, 2);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 77);
+            assert.equal(game.p2.hp, 10);
+            game.apply_effects();
+            assert.equal(game.p1.hp, 2);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 77);
+            assert.equal(game.p2.hp, 7);
+            game.cast({caster: game.p1, target: game.p2, spell: 'Magic Missile'});
+
+            // turn 4
+            assert.equal(game.p1.hp, 2);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 24);
+            assert.equal(game.p2.hp, 3);
+            game.apply_effects();
+            assert.equal(game.p1.hp, 2);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.mana, 24);
+            assert.equal(game.p2.mana, 0);
         });
     });
 });

@@ -12,7 +12,7 @@ module.exports = (function () {
             impact: [
                 {
                     player: 'target',
-                    stat: 'dmg',
+                    stat: 'hp',
                     type: 'real',
                     delta: -4
                 }
@@ -24,7 +24,7 @@ module.exports = (function () {
             impact: [
                 {
                     player: 'target',
-                    stat: 'dmg',
+                    stat: 'hp',
                     type: 'real',
                     delta: -2
                 },
@@ -109,30 +109,37 @@ module.exports = (function () {
         delete this.game_properties;
     };
 
+    Game.prototype.apply_effect_impact = function (player, impact) {
+        if (impact.type === 'real') {
+            player[impact.stat] += impact.delta;
+        } else if (impact.type === 'effective') {
+            player['effective_' + impact.stat] = player[impact.stat] + impact.delta;
+        } else {
+            assert(false);
+        }
+    };
+
     Game.prototype.apply_effects = function () {
-        var i, j, effect, spell, impact, player;
+        var i, j, effect, spell;
 
         for (i = 0; i < this.effects.length; i += 1) {
             effect = this.effects[i];
             spell = Spells[effect.spell];
             assert.equal(spell.type, 'effect');
             for (j = 0; j < spell.impact.length; j += 1) {
-                impact = spell.impact[j];
-                console.log('trying to apply effect impact', impact);
-                if (impact.type === 'real') {
-                    console.log(this.effect);
-                    effect[impact.player][impact.stat] += impact.delta;
-                } else if (impact.type === 'effective') {
-                    effect[impact.player]['effective_' + impact.stat] = effect[impact.player][impact.stat] + impact.delta;
-                } else {
-                    assert(false);
-                }
+                this.apply_effect_impact(effect[spell.impact[j].player], spell.impact[j]);
             }
         }
     };
 
+    Game.prototype.attack = function (args) {
+        var effective_dmg;
+        effective_dmg = ([1, args.target.hasOwnProperty('effective_armor') ? (args.player.dmg - args.target.effective_armor) : (args.player.dmg - args.target.armor)].sort())[1];
+        args.target.hp -= effective_dmg;
+    };
+
     Game.prototype.cast = function (args) {
-        var i, props, casting;
+        var i, props, casting, spell;
 
         casting = {};
 
@@ -151,6 +158,13 @@ module.exports = (function () {
         if (Spells[args.spell].type === 'effect') {
             casting.ttl = Spells[args.spell].duration;
             this.effects.push(casting);
+        } else if (Spells[args.spell].type === 'instant') {
+            spell = Spells[args.spell];
+            for (i = 0; i < spell.impact.length; i += 1) {
+                this.apply_effect_impact(args[spell.impact[i].player], spell.impact[i]);
+            }
+        } else {
+            assert(false);
         }
     };
 
