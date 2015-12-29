@@ -165,6 +165,24 @@ describe('p22_part1', function () {
             assert.equal(game.p1.effective_armor, 7);
             assert.equal(game.p1.mana, 211);
             assert.equal(game.p2.hp, 14);
+
+            // turn 5
+            game.apply_effects();
+            assert.equal(game.p1.hp, 1);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 312);
+            assert.equal(game.p2.hp, 14);
+            assert.deepEqual(game.effects, [
+                {spell: 'Recharge', ttl: 1, caster: game.p1},
+                {spell: 'Shield', ttl: 4, caster: game.p1}
+            ]);
+            game.cast({caster: game.p1, target: game.p2, spell: 'Drain'});
+            assert.equal(game.p1.hp, 3);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 239);
+            assert.equal(game.p2.hp, 12);
         });
     });
 });
