@@ -120,17 +120,24 @@ module.exports = (function () {
     };
 
     Game.prototype.apply_effects = function () {
-        var i, j, effect, spell;
+        var i, j, effect, spell, new_effects;
+
+        new_effects = [];
 
         for (i = 0; i < this.effects.length; i += 1) {
             effect = this.effects[i];
             effect.ttl -= 1;
+            if (effect.ttl >= 0) {
+                new_effects.push(effect);
+            }
             spell = Spells[effect.spell];
             assert.equal(spell.type, 'effect');
             for (j = 0; j < spell.impact.length; j += 1) {
                 this.apply_effect_impact(effect[spell.impact[j].player], spell.impact[j]);
             }
         }
+
+        this.effects = new_effects;
     };
 
     Game.prototype.attack = function (args) {
