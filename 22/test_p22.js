@@ -183,6 +183,24 @@ describe('p22_part1', function () {
             assert.equal(game.p1.effective_armor, 7);
             assert.equal(game.p1.mana, 239);
             assert.equal(game.p2.hp, 12);
+
+            // turn 6
+            game.apply_effects();
+            assert.equal(game.p1.hp, 3);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 340);
+            assert.equal(game.p2.hp, 12);
+            assert.deepEqual(game.effects, [
+                {spell: 'Recharge', ttl: 0, caster: game.p1},
+                {spell: 'Shield', ttl: 3, caster: game.p1}
+            ]);
+            game.attack({player: game.p2, target: game.p1});
+            assert.equal(game.p1.hp, 2);
+            assert.equal(game.p1.armor, 0);
+            assert.equal(game.p1.effective_armor, 7);
+            assert.equal(game.p1.mana, 340);
+            assert.equal(game.p2.hp, 12);
         });
     });
 });
