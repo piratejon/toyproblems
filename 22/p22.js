@@ -178,7 +178,8 @@ module.exports = (function () {
 
     return {
         Player: Player,
-        Game: Game
+        Game: Game,
+        Spells: Spells
     };
 }());
 
