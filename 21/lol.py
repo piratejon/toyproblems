@@ -138,7 +138,6 @@ def part2():
                         print('found better winning cost', current_cost, 'with', weapon, 'and', armor, 'and', r1, 'and', r2)
                         expensivest_loss = current_cost
 
-
 def main():
     part2()
 
