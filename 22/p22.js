@@ -123,10 +123,27 @@ module.exports = (function () {
         }
     };
 
+    GameState.prototype.reset_effective_stats = function () {
+        var stat;
+
+        for (stat in this.p1) {
+            if (stat.lastIndexOf('effective_', 0) === 0 && this.p1.hasOwnProperty(stat)) {
+                this.p1[stat] = 0;
+            }
+        }
+        for (stat in this.p2) {
+            if (stat.lastIndexOf('effective_', 0) === 0 && this.p2.hasOwnProperty(stat)) {
+                this.p2[stat] = 0;
+            }
+        }
+    };
+
     GameState.prototype.apply_effects = function () {
         var i, j, effect, spell, new_effects;
 
         new_effects = [];
+
+        this.reset_effective_stats();
 
         for (i = 0; i < this.effects.length; i += 1) {
             effect = this.effects[i];

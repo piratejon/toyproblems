@@ -259,7 +259,7 @@ describe('p22_part1', function () {
             gamestate.apply_effects();
             assert.equal(gamestate.p1.hp, 1);
             assert.equal(gamestate.p1.armor, 0);
-            assert.equal(gamestate.p1.effective_armor, 7);
+            assert.equal(gamestate.p1.effective_armor, 0);
             assert.equal(gamestate.p1.mana, 114);
             assert.equal(gamestate.p2.hp, -1);
             assert.deepEqual(gamestate.effects, [
@@ -350,34 +350,54 @@ describe('p22_part1', function () {
             game = new p22.Game({p1: player, p2: boss});
 
             assert.equal(game.serialize(), '0,10,0,0,250,14,8,0');
-
-            assert.equal(game.turn, 0);
             game.play(); // apply effects before player turn
             assert.equal(game.serialize(), '1,10,0,0,250,14,8,0');
-            assert.equal(game.turn, 1);
             game.play('Recharge'); // player spell
             assert.equal(game.serialize(), '2,10,0,0,21,14,8,1,R,5,1,2');
-            assert.equal(game.turn, 2);
             game.play(); // apply effects before boss turn
             assert.equal(game.serialize(), '3,10,0,0,122,14,8,1,R,4,1,2');
-            assert.equal(game.turn, 3);
             game.play();  // boss attack
+
             assert.equal(game.serialize(), '0,2,0,0,122,14,8,1,R,4,1,2');
-            assert.equal(game.turn, 4);
             game.play(); // apply effects before player turn
             assert.equal(game.serialize(), '1,2,0,0,223,14,8,1,R,3,1,2');
-            assert.equal(game.turn, 5);
             game.play('Shield'); // player spell
             assert.equal(game.serialize(), '2,2,0,0,110,14,8,2,R,3,1,2,S,6,1,2');
-            assert.equal(game.turn, 6);
             game.play(); // apply effects before boss turn
-            assert.equal(game.serialize(), '3,2,0,0,24,0,8,1,P,3,1,2');
-            assert.equal(game.turn, 7);
+            assert.equal(game.serialize(), '3,2,0,7,211,14,8,2,R,2,1,2,S,5,1,2');
+            game.play(); // boss attack
 
-            assert.equal(game.state.p1.hp, 2);
+            assert.equal(game.serialize(), '0,1,0,7,211,14,8,2,R,2,1,2,S,5,1,2');
+            game.play(); // apply effects before player turn
+            assert.equal(game.serialize(), '1,1,0,7,312,14,8,2,R,1,1,2,S,4,1,2');
+            game.play('Drain');
+            assert.equal(game.serialize(), '2,3,0,7,239,12,8,2,R,1,1,2,S,4,1,2');
+            game.play(); // apply effect before boss turn
+            assert.equal(game.serialize(), '3,3,0,7,340,12,8,2,R,0,1,2,S,3,1,2');
+            game.play(); // boss attack
+
+            assert.equal(game.serialize(), '0,2,0,7,340,12,8,2,R,0,1,2,S,3,1,2');
+            game.play(); // apply effects before player turn
+            assert.equal(game.serialize(), '1,2,0,7,340,12,8,1,S,2,1,2');
+            game.play('Poison');
+            assert.equal(game.serialize(), '2,2,0,7,167,12,8,2,S,2,1,2,P,6,1,2');
+            game.play(); // apply effect before boss turn
+            assert.equal(game.serialize(), '3,2,0,7,167,9,8,2,S,1,1,2,P,5,1,2');
+            game.play(); // boss attack
+
+            assert.equal(game.serialize(), '0,1,0,7,167,9,8,2,S,1,1,2,P,5,1,2');
+            game.play(); // apply effects before player turn
+            assert.equal(game.serialize(), '1,1,0,7,167,6,8,2,S,0,1,2,P,4,1,2');
+            game.play('Magic Missile');
+            assert.equal(game.serialize(), '2,1,0,7,114,2,8,2,S,0,1,2,P,4,1,2');
+            game.play(); // apply effects before boss turn
+            assert.equal(game.serialize(), '3,1,0,0,114,-1,8,1,P,3,1,2');
+
+            assert.equal(game.state.p1.hp, 1);
             assert.equal(game.state.p1.armor, 0);
-            assert.equal(game.state.p1.mana, 24);
-            assert.equal(game.state.p2.hp, 0);
+            assert.equal(game.state.p1.effective_armor, 0);
+            assert.equal(game.state.p1.mana, 114);
+            assert.equal(game.state.p2.hp, -1);
         });
     });
 });
