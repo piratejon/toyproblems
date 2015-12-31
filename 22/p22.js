@@ -220,11 +220,11 @@ module.exports = (function () {
         pieces.push(this.state.effects.length);
 
         for (i = 0; i < this.state.effects.length; i += 1) {
-            pieces.push(this.state.effects.spell);
-            pieces.push(this.state.effects.ttl);
-            pieces.push(this.state.effects.caster === this.state.p1 ? '1' : '2');
-            if (this.state.effects.hasOwnProperty('target')) {
-                pieces.push(this.state.effects.target === this.state.p1 ? '1' : '2');
+            pieces.push(this.state.effects[i].spell);
+            pieces.push(this.state.effects[i].ttl);
+            pieces.push(this.state.effects[i].caster === this.state.p1 ? '1' : '2');
+            if (this.state.effects[i].hasOwnProperty('target')) {
+                pieces.push(this.state.effects[i].target === this.state.p1 ? '1' : '2');
             }
         }
 

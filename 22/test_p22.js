@@ -312,8 +312,10 @@ describe('p22_part1', function () {
 
             assert.equal(game.turn, 0);
             game.play(); // apply effects before player turn
+            assert.equal(game.serialize(), '10,0,0,250,13,8,0');
             assert.equal(game.turn, 1);
             game.play('Poison'); // player spell
+            assert.equal(game.serialize(), '10,0,0,77,13,8,1,Poison,6,1,2');
             assert.equal(game.turn, 2);
             game.play(); // apply effects before boss turn
             assert.equal(game.turn, 3);
