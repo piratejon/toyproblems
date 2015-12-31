@@ -88,6 +88,10 @@ module.exports = (function () {
             }
         }
 
+        if (this.hasOwnProperty('armor') && !this.hasOwnProperty('effective_armor')) {
+            this.effective_armor = this.armor;
+        }
+
         delete this.i;
         delete this.player_properties;
     };
@@ -183,21 +187,48 @@ module.exports = (function () {
 
     Game.prototype.play = function (spell_name) {
         switch (this.turn % 4) {
-            case 0:
-                this.state.apply_effects();
-                break;
-            case 1:
-                this.state.cast({caster: this.state.p1, target: this.state.p2, spell: spell_name});
-                break;
-            case 2:
-                this.state.apply_effects();
-                break;
-            case 3:
-                this.state.attack({player: this.state.p2, target: this.state.p1});
-                break;
+        case 0:
+            this.state.apply_effects();
+            break;
+        case 1:
+            this.state.cast({caster: this.state.p1, target: this.state.p2, spell: spell_name});
+            break;
+        case 2:
+            this.state.apply_effects();
+            break;
+        case 3:
+            this.state.attack({player: this.state.p2, target: this.state.p1});
+            break;
         }
 
         this.turn += 1;
+    };
+
+    Game.prototype.serialize = function () {
+        var i, pieces;
+
+        // serialized string is:
+        // p1.hp,p1.armor,p1.effective_armor,p1.mana,p2.hp,p2.dmg,effect_count[,e1.spell,e1.ttl,e1.caster[,e1.target]]
+
+        pieces = [];
+        pieces.push(this.state.p1.hp);
+        pieces.push(this.state.p1.armor);
+        pieces.push(this.state.p1.effective_armor);
+        pieces.push(this.state.p1.mana);
+        pieces.push(this.state.p2.hp);
+        pieces.push(this.state.p2.dmg);
+        pieces.push(this.state.effects.length);
+
+        for (i = 0; i < this.state.effects.length; i += 1) {
+            pieces.push(this.state.effects.spell);
+            pieces.push(this.state.effects.ttl);
+            pieces.push(this.state.effects.caster === this.state.p1 ? '1' : '2');
+            if (this.state.effects.hasOwnProperty('target')) {
+                pieces.push(this.state.effects.target === this.state.p1 ? '1' : '2');
+            }
+        }
+
+        return pieces.join();
     };
 
     return {
