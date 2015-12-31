@@ -402,13 +402,38 @@ describe('p22_part1', function () {
     });
 
     describe('exercise the deserializer', function () {
-        var game;
-        game = new p22.Game({state: '3,1,0,0,114,-1,8,1,P,3,1,2'});
-        assert.equal(game.state.p1.hp, 1);
-        assert.equal(game.state.p1.armor, 0);
-        assert.equal(game.state.p1.effective_armor, 0);
-        assert.equal(game.state.p1.mana, 114);
-        assert.equal(game.state.p2.hp, -1);
+        it('deserializes a state', function () {
+            var game;
+            game = new p22.Game({state: '3,1,0,0,114,-1,8,1,P,3,1,2'});
+            assert.equal(game.state.p1.hp, 1);
+            assert.equal(game.state.p1.armor, 0);
+            assert.equal(game.state.p1.effective_armor, 0);
+            assert.equal(game.state.p1.mana, 114);
+            assert.equal(game.state.p2.hp, -1);
+        });
+
+        it('effectively deep-copies the state', function () {
+            var game0, game1;
+            game0 = new p22.Game({state: '0,1,0,7,167,9,8,2,S,1,1,2,P,5,1,2'});
+            game1 = new p22.Game({state: game0.serialize()});
+
+            assert.equal(game0.serialize(), game1.serialize());
+
+            game0.play();
+            assert.notEqual(game0.serialize(), game1.serialize());
+            game1.play();
+            assert.equal(game0.serialize(), game1.serialize());
+
+            game0.play('Magic Missile');
+            assert.notEqual(game0.serialize(), game1.serialize());
+            game0.play();
+            assert.notEqual(game0.serialize(), game1.serialize());
+
+            game1.play('Magic Missile');
+            assert.notEqual(game0.serialize(), game1.serialize());
+            game1.play();
+            assert.equal(game0.serialize(), game1.serialize());
+        });
     });
 });
 
