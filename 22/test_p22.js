@@ -89,7 +89,7 @@ describe('p22_part1', function () {
             assert.equal(gamestate.p1.hp, 2);
             assert.equal(gamestate.p1.armor, 0);
             assert.equal(gamestate.p1.mana, 24);
-            assert.equal(gamestate.p2.mana, 0);
+            assert.equal(gamestate.p2.hp, 0);
         });
 
         it('plays the second example', function () {
@@ -270,6 +270,34 @@ describe('p22_part1', function () {
 
     describe('plays the examples with turn tracking', function () {
         it ('plays the first example', function () {
+            var player, boss, game, player_spell_stream;
+            player = new p22.Player({hp: 10, armor: 0, mana: 250});
+            boss = new p22.Player({hp: 13, armor: 0, dmg: 8});
+
+            game = new p22.Game({p1: player, p2: boss});
+
+            player_spell_stream = ['Poison', 'Magic Missile'];
+
+            assert.equal(game.turn, 0);
+            game.play(); // apply effects before player turn
+            assert.equal(game.turn, 1);
+            game.play('Poison'); // player spell
+            assert.equal(game.turn, 2);
+            game.play(); // apply effects before boss turn
+            assert.equal(game.turn, 3);
+            game.play();  // boss attack
+            assert.equal(game.turn, 4);
+            game.play(); // apply effects before player turn
+            assert.equal(game.turn, 5);
+            game.play('Magic Missile'); // player spell
+            assert.equal(game.turn, 6);
+            game.play(); // apply effects before boss turn
+            assert.equal(game.turn, 7);
+
+            assert.equal(game.state.p1.hp, 2);
+            assert.equal(game.state.p1.armor, 0);
+            assert.equal(game.state.p1.mana, 24);
+            assert.equal(game.state.p2.hp, 0);
         });
     });
 });

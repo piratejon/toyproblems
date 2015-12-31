@@ -176,9 +176,34 @@ module.exports = (function () {
         }
     };
 
+    Game = function (args) {
+        this.state = new GameState(args);
+        this.turn = 0;
+    };
+
+    Game.prototype.play = function (spell_name) {
+        switch (this.turn % 4) {
+            case 0:
+                this.state.apply_effects();
+                break;
+            case 1:
+                this.state.cast({caster: this.state.p1, target: this.state.p2, spell: spell_name});
+                break;
+            case 2:
+                this.state.apply_effects();
+                break;
+            case 3:
+                this.state.attack({player: this.state.p2, target: this.state.p1});
+                break;
+        }
+
+        this.turn += 1;
+    };
+
     return {
         Player: Player,
         GameState: GameState,
+        Game: Game,
         Spells: Spells
     };
 }());
