@@ -208,9 +208,10 @@ module.exports = (function () {
         var i, pieces;
 
         // serialized string is:
-        // p1.hp,p1.armor,p1.effective_armor,p1.mana,p2.hp,p2.dmg,effect_count[,e1.spell,e1.ttl,e1.caster[,e1.target]]
+        // turn%4,p1.hp,p1.armor,p1.effective_armor,p1.mana,p2.hp,p2.dmg,effect_count[,e1.spell,e1.ttl,e1.caster[,e1.target]]
 
         pieces = [];
+        pieces.push(this.turn % 4);
         pieces.push(this.state.p1.hp);
         pieces.push(this.state.p1.armor);
         pieces.push(this.state.p1.effective_armor);
@@ -220,7 +221,7 @@ module.exports = (function () {
         pieces.push(this.state.effects.length);
 
         for (i = 0; i < this.state.effects.length; i += 1) {
-            pieces.push(this.state.effects[i].spell);
+            pieces.push(this.state.effects[i].spell[0]);
             pieces.push(this.state.effects[i].ttl);
             pieces.push(this.state.effects[i].caster === this.state.p1 ? '1' : '2');
             if (this.state.effects[i].hasOwnProperty('target')) {

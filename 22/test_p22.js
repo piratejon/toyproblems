@@ -308,24 +308,29 @@ describe('p22_part1', function () {
 
             game = new p22.Game({p1: player, p2: boss});
 
-            assert.equal(game.serialize(), '10,0,0,250,13,8,0');
+            assert.equal(game.serialize(), '0,10,0,0,250,13,8,0');
 
             assert.equal(game.turn, 0);
             game.play(); // apply effects before player turn
-            assert.equal(game.serialize(), '10,0,0,250,13,8,0');
+            assert.equal(game.serialize(), '1,10,0,0,250,13,8,0');
             assert.equal(game.turn, 1);
             game.play('Poison'); // player spell
-            assert.equal(game.serialize(), '10,0,0,77,13,8,1,Poison,6,1,2');
+            assert.equal(game.serialize(), '2,10,0,0,77,13,8,1,P,6,1,2');
             assert.equal(game.turn, 2);
             game.play(); // apply effects before boss turn
+            assert.equal(game.serialize(), '3,10,0,0,77,10,8,1,P,5,1,2');
             assert.equal(game.turn, 3);
             game.play();  // boss attack
+            assert.equal(game.serialize(), '0,2,0,0,77,10,8,1,P,5,1,2');
             assert.equal(game.turn, 4);
             game.play(); // apply effects before player turn
+            assert.equal(game.serialize(), '1,2,0,0,77,7,8,1,P,4,1,2');
             assert.equal(game.turn, 5);
             game.play('Magic Missile'); // player spell
+            assert.equal(game.serialize(), '2,2,0,0,24,3,8,1,P,4,1,2');
             assert.equal(game.turn, 6);
             game.play(); // apply effects before boss turn
+            assert.equal(game.serialize(), '3,2,0,0,24,0,8,1,P,3,1,2');
             assert.equal(game.turn, 7);
 
             assert.equal(game.state.p1.hp, 2);
