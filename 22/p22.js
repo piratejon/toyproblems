@@ -99,6 +99,11 @@ module.exports = (function () {
     GameState = function (args) {
         var i, game_properties;
 
+        if (args.hasOwnProperty('state')) {
+            this.unserialize(args.state);
+            return;
+        }
+
         game_properties = ['p1', 'p2'];
 
         for (i = 0; i < game_properties.length; i += 1) {
@@ -111,6 +116,33 @@ module.exports = (function () {
 
         delete this.i;
         delete this.game_properties;
+    };
+
+    GameState.prototype.unserialize = function (state) {
+        var items, i, effect_count, base;
+
+        items = state.split(',');
+
+        this.p1 = new Player({hp: items[1], armor: items[2], effective_armor: items[3], mana: items[4]});
+        this.p2 = new Player({hp: items[5], dmg: items[6]});
+
+        effect_count = parseInt(items[7], 10);
+        this.effects = [];
+        for (i = 0; i < effect_count; i += 1) {
+            base = 8 + (4 * i);
+            this.effects.push({
+                spell: {
+                    P: 'Poison',
+                    D: 'Drain',
+                    M: 'Magic Missile',
+                    S: 'Shield',
+                    R: 'Recharge'
+                }[items[base]],
+                ttl: parseInt(items[base + 1], 10),
+                caster: items[base + 2] === '1' ? this.p1 : this.p2,
+                target: items[base + 3] === '1' ? this.p1 : this.p2,
+            });
+        }
     };
 
     GameState.prototype.apply_effect_impact = function (player, impact) {
@@ -127,12 +159,12 @@ module.exports = (function () {
         var stat;
 
         for (stat in this.p1) {
-            if (stat.lastIndexOf('effective_', 0) === 0 && this.p1.hasOwnProperty(stat)) {
+            if (this.p1.hasOwnProperty(stat) && stat.lastIndexOf('effective_', 0) === 0) {
                 this.p1[stat] = 0;
             }
         }
         for (stat in this.p2) {
-            if (stat.lastIndexOf('effective_', 0) === 0 && this.p2.hasOwnProperty(stat)) {
+            if (this.p2.hasOwnProperty(stat) && stat.lastIndexOf('effective_', 0) === 0) {
                 this.p2[stat] = 0;
             }
         }
@@ -198,8 +230,18 @@ module.exports = (function () {
     };
 
     Game = function (args) {
-        this.state = new GameState(args);
-        this.turn = 0;
+        if (args.hasOwnProperty('state')) {
+            this.unserialize(args.state);
+        } else {
+            this.state = new GameState(args);
+            this.turn = 0;
+        }
+    };
+
+    Game.prototype.unserialize = function (state) {
+        var items = state.split(',');
+        this.state = new GameState({'state': state});
+        this.turn = parseInt(items[0], 10);
     };
 
     Game.prototype.play = function (spell_name) {
