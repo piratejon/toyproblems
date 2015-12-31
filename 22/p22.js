@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = (function () {
-    var Player, Game, Spells, assert;
+    var Player, GameState, Spells, assert;
 
     assert = require('assert');
 
@@ -92,7 +92,7 @@ module.exports = (function () {
         delete this.player_properties;
     };
 
-    Game = function (args) {
+    GameState = function (args) {
         var i, game_properties;
 
         game_properties = ['p1', 'p2'];
@@ -109,7 +109,7 @@ module.exports = (function () {
         delete this.game_properties;
     };
 
-    Game.prototype.apply_effect_impact = function (player, impact) {
+    GameState.prototype.apply_effect_impact = function (player, impact) {
         if (impact.type === 'real') {
             player[impact.stat] += impact.delta;
         } else if (impact.type === 'effective') {
@@ -119,7 +119,7 @@ module.exports = (function () {
         }
     };
 
-    Game.prototype.apply_effects = function () {
+    GameState.prototype.apply_effects = function () {
         var i, j, effect, spell, new_effects;
 
         new_effects = [];
@@ -140,13 +140,13 @@ module.exports = (function () {
         this.effects = new_effects;
     };
 
-    Game.prototype.attack = function (args) {
+    GameState.prototype.attack = function (args) {
         var effective_dmg;
         effective_dmg = ([1, args.target.hasOwnProperty('effective_armor') ? (args.player.dmg - args.target.effective_armor) : (args.player.dmg - args.target.armor)].sort())[1];
         args.target.hp -= effective_dmg;
     };
 
-    Game.prototype.cast = function (args) {
+    GameState.prototype.cast = function (args) {
         var i, props, casting, spell;
 
         casting = {};
@@ -178,7 +178,7 @@ module.exports = (function () {
 
     return {
         Player: Player,
-        Game: Game,
+        GameState: GameState,
         Spells: Spells
     };
 }());

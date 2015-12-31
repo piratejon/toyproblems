@@ -26,7 +26,7 @@ describe('p22_part1', function () {
             player = new p22.Player({hp: 10, armor: 0, mana: 250, dmg: 0});
             boss = new p22.Player({hp: 13, armor: 0, mana: 0, dmg: 8});
 
-            game = new p22.Game({p1: player, p2: boss});
+            game = new p22.GameState({p1: player, p2: boss});
 
             assert.equal(game.p1, player);
             assert.equal(game.p2, boss);
@@ -38,7 +38,7 @@ describe('p22_part1', function () {
             player = new p22.Player({hp: 10, armor: 0, mana: 250, dmg: 0});
             boss = new p22.Player({hp: 13, armor: 0, mana: 0, dmg: 8});
 
-            game = new p22.Game({p1: player, p2: boss});
+            game = new p22.GameState({p1: player, p2: boss});
 
             // initial state
             assert.equal(game.p1.hp, 10);
@@ -98,7 +98,7 @@ describe('p22_part1', function () {
             player = new p22.Player({hp: 10, armor: 0, mana: 250, dmg: 0});
             boss = new p22.Player({hp: 14, armor: 0, mana: 0, dmg: 8});
 
-            game = new p22.Game({p1: player, p2: boss});
+            game = new p22.GameState({p1: player, p2: boss});
 
             // initial state
             assert.equal(game.p1.hp, 10);
