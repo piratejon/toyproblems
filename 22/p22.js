@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = (function () {
-    var Player, GameState, Spells, assert;
+    var Player, GameState, Spells, Game, assert;
 
     assert = require('assert');
 
