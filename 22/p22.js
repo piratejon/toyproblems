@@ -226,6 +226,8 @@ module.exports = (function () {
             pieces.push(this.state.effects[i].caster === this.state.p1 ? '1' : '2');
             if (this.state.effects[i].hasOwnProperty('target')) {
                 pieces.push(this.state.effects[i].target === this.state.p1 ? '1' : '2');
+            } else {
+                pieces.push('-');
             }
         }
 

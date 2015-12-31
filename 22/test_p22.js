@@ -303,6 +303,7 @@ describe('p22_part1', function () {
         it ('plays the first example with serialization', function () {
             var player, boss, game;
 
+            // player plays: Poison, Magic Missile
             player = new p22.Player({hp: 10, armor: 0, mana: 250});
             boss = new p22.Player({hp: 13, armor: 0, dmg: 8});
 
@@ -328,6 +329,46 @@ describe('p22_part1', function () {
             assert.equal(game.turn, 5);
             game.play('Magic Missile'); // player spell
             assert.equal(game.serialize(), '2,2,0,0,24,3,8,1,P,4,1,2');
+            assert.equal(game.turn, 6);
+            game.play(); // apply effects before boss turn
+            assert.equal(game.serialize(), '3,2,0,0,24,0,8,1,P,3,1,2');
+            assert.equal(game.turn, 7);
+
+            assert.equal(game.state.p1.hp, 2);
+            assert.equal(game.state.p1.armor, 0);
+            assert.equal(game.state.p1.mana, 24);
+            assert.equal(game.state.p2.hp, 0);
+        });
+
+        it ('plays the second example with serialization', function () {
+            var player, boss, game;
+
+            // player plays: Recharge, Shield, Drain, Poison, Magic Missile
+            player = new p22.Player({hp: 10, armor: 0, mana: 250});
+            boss = new p22.Player({hp: 14, armor: 0, dmg: 8});
+
+            game = new p22.Game({p1: player, p2: boss});
+
+            assert.equal(game.serialize(), '0,10,0,0,250,14,8,0');
+
+            assert.equal(game.turn, 0);
+            game.play(); // apply effects before player turn
+            assert.equal(game.serialize(), '1,10,0,0,250,14,8,0');
+            assert.equal(game.turn, 1);
+            game.play('Recharge'); // player spell
+            assert.equal(game.serialize(), '2,10,0,0,21,14,8,1,R,5,1,2');
+            assert.equal(game.turn, 2);
+            game.play(); // apply effects before boss turn
+            assert.equal(game.serialize(), '3,10,0,0,122,14,8,1,R,4,1,2');
+            assert.equal(game.turn, 3);
+            game.play();  // boss attack
+            assert.equal(game.serialize(), '0,2,0,0,122,14,8,1,R,4,1,2');
+            assert.equal(game.turn, 4);
+            game.play(); // apply effects before player turn
+            assert.equal(game.serialize(), '1,2,0,0,223,14,8,1,R,3,1,2');
+            assert.equal(game.turn, 5);
+            game.play('Shield'); // player spell
+            assert.equal(game.serialize(), '2,2,0,0,110,14,8,2,R,3,1,2,S,6,1,2');
             assert.equal(game.turn, 6);
             game.play(); // apply effects before boss turn
             assert.equal(game.serialize(), '3,2,0,0,24,0,8,1,P,3,1,2');
