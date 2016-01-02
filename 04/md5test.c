@@ -35,7 +35,7 @@
 
 static int self_check(void);
 void md5_hash(const uint8_t *message, uint32_t len, uint32_t hash[4]);
-void p04_bruteforce(void);
+void p04_bruteforce(const int, const char *);
 int increment_thing(char *, int, int);
 
 // Link this program with an external C or x86 compression function
@@ -60,20 +60,9 @@ int main(int argc, char **argv) {
   printf("%08X %08X %08X %08X\n", hash[0], hash[1], hash[2], hash[3]);
   printf("%08X\n", hash[0] & 0x00f0ffff);
   */
-  p04_bruteforce();
+  p04_bruteforce(0x00f0ffff, "ckczppom");
+  p04_bruteforce(0x00ffffff, "ckczppom");
   return 0;
-	
-	// Benchmark speed
-	uint32_t state[4] = {};
-	uint32_t block[16] = {};
-	const int N = 10000000;
-	clock_t start_time = clock();
-	int i;
-	for (i = 0; i < N; i++)
-		md5_compress(state, block);
-	printf("Speed: %.1f MiB/s\n", (double)N * sizeof(block) / (clock() - start_time) * CLOCKS_PER_SEC / 1048576);
-	
-	return 0;
 }
 
 
@@ -123,11 +112,11 @@ int increment_thing(char * lol, int num_start, int num_end) {
             } else if (1 == r) {
                 // printf("increment_thing: returning 1\n");
                 lol[num_end] = '0';
-                return 1;
+                // return 1;
             } else if (2 == r) {
                 // printf("increment_thing: returning 1\n");
                 lol[num_end] = '1';
-                return 1;
+                // return 1;
             }
         } else {
             // printf("increment_thing: found a bad thing!\n");
@@ -137,35 +126,50 @@ int increment_thing(char * lol, int num_start, int num_end) {
         // printf("increment_thing: trying to run aground!\n");
         return 2;
     }
+
+    return 1;
 }
 
-void p04_bruteforce(void) {
+void p04_bruteforce(const int target, const char * key) {
     unsigned int num_start, num_end;
     unsigned long i;
     char message[128];
     uint32_t hash[4];
 
-    strcpy(message, "ckczppom0");
+    strcpy(message, key);
+    strcat(message, "0");
+
     num_start = num_end = 8;
 
-    for (i = 0; i < 10000000000; i += 1) {
+    for (i = 1; i < 10000000000; i += 1) {
+#if defined(_SLOW_STRING_INCREMENT)
+		    md5_hash(message, strlen(message), hash);
+#else
 		    md5_hash(message, num_end + 1, hash);
+#endif // _SLOW_STRING_INCREMENT
 
-        if (i % 10000000 == 0) {
-            printf("%s: %08X%08X%08X%08X\n", message,
-                __bswap_32(hash[0]), __bswap_32(hash[1]), __bswap_32(hash[2]), __bswap_32(hash[3]));
-        }
-
-        if ((hash[0] & 0x00ffffff) == 0) {
+        if ((hash[0] & target) == 0) {
             printf("winner winner chicken dinner: %s\n", message);
             break;
         }
 
+#if defined(_DISPLAY_PROGRESS)
+        if (i % 10000000 == 0) {
+            printf("%s: %08X%08X%08X%08X\n", message,
+                __bswap_32(hash[0]), __bswap_32(hash[1]), __bswap_32(hash[2]), __bswap_32(hash[3]));
+        }
+#endif // _DISPLAY_PROGRESS
+
+#if defined(_SLOW_STRING_INCREMENT)
+        snprintf(message, sizeof(message), "%s%ld", key, i);
+#else
         if (0 != increment_thing(message, num_start, num_end)) {
             num_end += 1;
             message[num_end] = '0';
             message[num_end + 1] = '\0';
         }
+#endif // _SLOW_STRING_INCREMENT
+
     }
 }
 
