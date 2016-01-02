@@ -2,8 +2,8 @@
 
 import fileinput
 
-from scipy import optimize
-import numpy as np
+#from scipy import optimize
+#import numpy as np
 
 import random
 
