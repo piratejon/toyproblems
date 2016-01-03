@@ -4,117 +4,113 @@ var assert = require('assert');
 
 var p22 = require('./p22');
 
-var player = new p22.Player({hp: 50, mana: 500, armor: 0});
-var boss = new p22.Player({hp: 51, dmg: 9});
+var example_1 = {
+    player: new p22.Player({hp: 10, mana: 250, armor: 0}),
+    boss: new p22.Player({hp: 13, dmg: 8})
+};
 
-var game = new p22.Game({p1: player, p2: boss});
+var example_2 = {
+    player: new p22.Player({hp: 10, mana: 250, armor: 0}),
+    boss: new p22.Player({hp: 14, dmg: 8})
+};
 
-function clone_game(src) {
-    var p1, p2, dst, p, i, new_effect;
+var real_problem = {
+    player: new p22.Player({hp: 50, mana: 500, armor: 0}),
+    boss: new p22.Player({hp: 51, dmg: 9})
+};
 
-    p1 = new p22.Player({});
-    p2 = new p22.Player({});
-
-    for (p in src.p1) {
-        if (src.p1.hasOwnProperty(p)) {
-            p1[p] = src.p1[p];
-        }
-    }
-
-    for (p in src.p2) {
-        if (src.p2.hasOwnProperty(p)) {
-            p2[p] = src.p2[p];
-        }
-    }
-
-    dst = new p22.Game({p1: p1, p2: p2});
-
-    for (i = 0; i < src.effects.length; i += 1) {
-        new_effect = {};
-        for (p in src.effects[i]) {
-            if (src.effects[i].hasOwnProperty(p)) {
-                if (p === 'caster' || p === 'target') {
-                    if (src.effects[i][p] === src.p1) {
-                        new_effect[p] = p1;
-                    } else if (src.effects[i][p] === src.p2) {
-                        new_effect[p] = p2;
-                    } else {
-                        assert(false);
-                    }
-                } else {
-                    new_effect[p] = src.effects[i][p];
-                }
-            }
-        }
-        dst.effects.push(new_effect);
-    }
-
-    return dst;
-}
+var game = (function (p) {
+        return new p22.Game({p1: p.player, p2: p.boss});
+    }(real_problem));
 
 var games_played = {};
 
-// returns mana spent
-function play_next_round(in_game, gamestr, spent_mana, level) {
-    var spell, min_spent_mana, g, current_spell_cost;
+var REALLY_HIGH_MANA = 999999999;
 
-    min_spent_mana = 99999999999;
+function play_next_round(in_game, in_mana, level) {
+    var game, spell, spent_mana, round_best_mana, header;
 
-    if (games_played.hasOwnProperty(in_game)) {
-        return games_played[in_game];
+    header = Array(level + 1).join('  ') + level.toString() + ' ' + in_game.serialize() + ' ' + in_mana.toString();
+
+    console.log(header);
+
+    if (games_played.hasOwnProperty(in_game.serialize())) {
+        console.log('already worked', in_game.serialize(), 'returning', games_played[in_game.serialize()]);
+        return games_played[in_game.serialize()];
     }
 
-    in_game.apply_effects();
+    round_best_mana = in_mana;
 
-    if (in_game.p1.hp > 0) {
-        if (in_game.p2.hp <= 0) {
-            console.log('we won', spent_mana);
-            games_played[in_game] = spent_mana;
-            return spent_mana;
-        }
-
-        // try each spell
+    if ((level % 4) === 1) {
         for (spell in p22.Spells) {
             if (p22.Spells.hasOwnProperty(spell)) {
-                current_spell_cost = p22.Spells[spell].cost;
-                if (in_game.p1.mana >= current_spell_cost) {
-                    g = clone_game(in_game);
-                    console.log(level, 'casting', spell, current_spell_cost, spent_mana + current_spell_cost);
+                if (-1 === in_game.state.effects.map(function (e) { return e.spell; }).indexOf(spell)) {
+                    spent_mana = p22.Spells[spell].cost;
+                    if (spent_mana <= in_game.state.p1.mana) {
+                        game = new p22.Game({state: in_game.serialize()});
+                        console.log(header, 'player casts', spell);
+                        game.play(spell);
+                         console.log('DOT "' + in_game.serialize() + '" -> "' + game.serialize() + '";');
 
-                    g.cast({caster: g.p1, target: g.p2, spell: spell});
-
-                    if (g.p1.hp > 0) {
-                        if (g.p2.hp <= 0) {
-                            // we won, preserve the score
-                            min_spent_mana = [min_spent_mana, spent_mana + current_spell_cost].sort()[0];
-                            console.log('we won', min_spent_mana);
-                        } else {
-                            // did not win; apply effects
-                            g.apply_effects();
-
-                            if (g.p1.hp > 0) {
-                                if (g.p2.hp <= 0) {
-                                    // we won, preserve the score
-                                    min_spent_mana = [min_spent_mana, spent_mana + current_spell_cost].sort()[0];
-                                    console.log('we won', min_spent_mana);
-                                } else {
-                                    g.attack({player: g.p2, target: g.p1});
-
-                                    if (g.p1.hp > 0) {
-                                        min_spent_mana = [min_spent_mana, play_next_round(g, spent_mana + current_spell_cost, level + 1)].sort()[0];
-                                    }
-                                }
+                        if (game.state.p1.hp > 0) { // spell did not kill player
+                            if (game.state.p2.hp <= 0) { // player killed boss
+                                round_best_mana = Math.min(round_best_mana, in_mana + spent_mana);
+                                console.log(header, 'spell killed boss, best mana', round_best_mana);
+                            } else { // we can keep drilling
+                                console.log(header, game.serialize(), 'game continues');
+                                round_best_mana = Math.min(round_best_mana, play_next_round(game, in_mana + spent_mana, level + 1));
                             }
+                        } else {
+                            console.log(header, 'spell killed player');
                         }
-                    } // else p1 died, keep trying
+                    }
+                } else {
+                    console.log(header, 'cannot cast', spell, 'while active');
                 }
             }
         }
+
+        games_played[in_game.serialize()] = round_best_mana;
+        return round_best_mana;
     }
 
-    games_played[in_game] = min_spent_mana;
-    return min_spent_mana;
+    // turns 0, 2, 3
+    game = new p22.Game({state: in_game.serialize()});
+    game.play();
+
+    switch (level % 4) {
+    case 0:
+        console.log(header, 'apply effects before cast');
+        break;
+    case 2:
+        console.log(header, 'apply effects before attack');
+        break;
+    case 3:
+        console.log(header, 'boss attack');
+        break;
+    }
+
+     console.log('DOT "' + in_game.serialize() + '" -> "' + game.serialize() + '";');
+
+    if (game.state.p1.hp <= 0) {
+        console.log(header, 'player killed');
+        games_played[in_game.serialize()] = round_best_mana;
+        return REALLY_HIGH_MANA;
+    }
+
+    if (game.state.p2.hp <= 0) {
+        console.log(header, 'boss killed, best mana', round_best_mana);
+        games_played[in_game.serialize()] = round_best_mana;
+        return round_best_mana;
+    }
+
+    console.log(header, 'game continues', game.serialize());
+    round_best_mana = play_next_round(game, round_best_mana, level + 1);
+    games_played[in_game.serialize()] = round_best_mana;
+    return round_best_mana;
 }
 
+ console.log('DOT digraph G {');
 console.log(play_next_round(game, 0, 0));
+ console.log('DOT }');
 

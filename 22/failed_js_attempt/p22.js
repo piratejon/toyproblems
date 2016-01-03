@@ -80,7 +80,7 @@ module.exports = (function () {
     Player = function (args) {
         var i, player_properties;
 
-        player_properties = ['hp', 'armor', 'dmg', 'mana'];
+        player_properties = ['hp', 'armor', 'dmg', 'mana', 'effective_armor'];
 
         for (i = 0; i < player_properties.length; i += 1) {
             if (args.hasOwnProperty(player_properties[i])) {
@@ -123,8 +123,8 @@ module.exports = (function () {
 
         items = state.split(',');
 
-        this.p1 = new Player({hp: items[1], armor: items[2], effective_armor: items[3], mana: items[4]});
-        this.p2 = new Player({hp: items[5], dmg: items[6]});
+        this.p1 = new Player({hp: parseInt(items[1], 10), armor: parseInt(items[2], 10), effective_armor: parseInt(items[3], 10), mana: parseInt(items[4], 10)});
+        this.p2 = new Player({hp: parseInt(items[5], 10), dmg: parseInt(items[6], 10)});
 
         effect_count = parseInt(items[7], 10);
         this.effects = [];
@@ -195,7 +195,7 @@ module.exports = (function () {
 
     GameState.prototype.attack = function (args) {
         var effective_dmg;
-        effective_dmg = ([1, args.target.hasOwnProperty('effective_armor') ? (args.player.dmg - args.target.effective_armor) : (args.player.dmg - args.target.armor)].sort())[1];
+        effective_dmg = Math.max(1, args.player.dmg - (args.target.hasOwnProperty('effective_armor') ? args.target.effective_armor : args.target.armor));
         args.target.hp -= effective_dmg;
     };
 
