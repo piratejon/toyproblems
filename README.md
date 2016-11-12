@@ -1,6 +1,6 @@
 about
 =====
-here are my aoc15 solutions they are probably not very interesting but i will brag about them anyway!
+here are solutions to toy problems from various places
 
 codename
 ========
