@@ -31,7 +31,7 @@ from (
 ) x
 ;
 
-with recursive press as (
+explain analyze with recursive press as (
   select
     direction
     , index
@@ -81,7 +81,7 @@ where rindex = 1
 order by position
 ;
 
-with recursive press as (
+explain analyze with recursive press as (
   select
     direction
     , index

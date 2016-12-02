@@ -1,0 +1,51 @@
+DROP TABLE
+CREATE TABLE
+COPY 5
+DROP TABLE
+SELECT 2612
+                                                                                           QUERY PLAN                                                                                           
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=6068.10..6068.10 rows=1 width=60) (actual time=2074.434..2074.435 rows=5 loops=1)
+   Sort Key: press."position"
+   Sort Method: quicksort  Memory: 25kB
+   CTE press
+     ->  Recursive Union  (cost=0.00..6067.84 rows=11 width=60) (actual time=0.189..2073.133 rows=2612 loops=1)
+           ->  Seq Scan on tmp_2016_02b  (cost=0.00..43.02 rows=1 width=60) (actual time=0.186..0.885 rows=1 loops=1)
+                 Filter: ((index = 1) AND ("position" = 1))
+                 Rows Removed by Filter: 2611
+           ->  Nested Loop  (cost=0.00..602.46 rows=1 width=60) (actual time=0.388..0.793 rows=1 loops=2612)
+                 Join Filter: (((p."position" = n."position") AND ((p.index + 1) = n.index) AND (p.rindex <> 1)) OR (((p."position" + 1) = n."position") AND (p.rindex = 1) AND (n.index = 1)))
+                 Rows Removed by Join Filter: 2611
+                 ->  WorkTable Scan on press p  (cost=0.00..0.20 rows=10 width=24) (actual time=0.000..0.000 rows=1 loops=2612)
+                 ->  Materialize  (cost=0.00..43.01 rows=1734 width=52) (actual time=0.000..0.188 rows=2612 loops=2612)
+                       ->  Seq Scan on tmp_2016_02b n  (cost=0.00..34.34 rows=1734 width=52) (actual time=0.010..0.766 rows=2612 loops=1)
+   ->  CTE Scan on press  (cost=0.00..0.25 rows=1 width=60) (actual time=392.247..2074.410 rows=5 loops=1)
+         Filter: (rindex = 1)
+         Rows Removed by Filter: 2607
+ Planning time: 0.605 ms
+ Execution time: 2074.686 ms
+(19 rows)
+
+                                                                                           QUERY PLAN                                                                                           
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=6068.65..6068.65 rows=1 width=116) (actual time=2073.028..2073.029 rows=5 loops=1)
+   Sort Key: press."position"
+   Sort Method: quicksort  Memory: 25kB
+   CTE press
+     ->  Recursive Union  (cost=0.00..6068.39 rows=11 width=116) (actual time=0.060..2071.612 rows=2612 loops=1)
+           ->  Seq Scan on tmp_2016_02b  (cost=0.00..43.02 rows=1 width=116) (actual time=0.057..0.250 rows=1 loops=1)
+                 Filter: ((index = 1) AND ("position" = 1))
+                 Rows Removed by Filter: 2611
+           ->  Nested Loop  (cost=0.00..602.51 rows=1 width=116) (actual time=0.387..0.792 rows=1 loops=2612)
+                 Join Filter: (((p."position" = n."position") AND ((p.index + 1) = n.index) AND (p.rindex <> 1)) OR (((p."position" + 1) = n."position") AND (p.rindex = 1) AND (n.index = 1)))
+                 Rows Removed by Join Filter: 2611
+                 ->  WorkTable Scan on press p  (cost=0.00..0.20 rows=10 width=52) (actual time=0.000..0.000 rows=1 loops=2612)
+                 ->  Materialize  (cost=0.00..43.01 rows=1734 width=52) (actual time=0.000..0.191 rows=2612 loops=2612)
+                       ->  Seq Scan on tmp_2016_02b n  (cost=0.00..34.34 rows=1734 width=52) (actual time=0.004..0.278 rows=2612 loops=1)
+   ->  CTE Scan on press  (cost=0.00..0.25 rows=1 width=116) (actual time=390.972..2073.012 rows=5 loops=1)
+         Filter: (rindex = 1)
+         Rows Removed by Filter: 2607
+ Planning time: 0.213 ms
+ Execution time: 2073.180 ms
+(19 rows)
+
