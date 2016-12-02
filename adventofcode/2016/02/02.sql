@@ -81,3 +81,96 @@ where rindex = 1
 order by position
 ;
 
+with recursive press as (
+  select
+    direction
+    , index
+    , rindex
+    , position
+    , '5' as start
+    , case direction
+    when 'U' then '5'
+    when 'D' then '5'
+    when 'R' then '6'
+    when 'L' then '5'
+    end as end
+  from tmp_2016_02b
+  where index = 1 and position = 1
+
+  union all
+
+  select
+    n.direction
+    , n.index
+    , n.rindex
+    , n.position
+    , p.end
+    , case
+    when n.direction = 'U' then
+      case p.end
+      when '3' then '1'
+      when '6' then '2'
+      when '7' then '3'
+      when '8' then '4'
+      when 'A' then '6'
+      when 'B' then '7'
+      when 'C' then '8'
+      when 'D' then 'B'
+      else p.end
+    end
+    when n.direction = 'D' then
+      case p.end
+      when '1' then '3'
+      when '2' then '6'
+      when '3' then '7'
+      when '4' then '8'
+      when '6' then 'A'
+      when '7' then 'B'
+      when '8' then 'C'
+      when 'B' then 'D'
+      else p.end
+    end
+    when n.direction = 'R' then
+      case p.end
+      when '2' then '3'
+      when '3' then '4'
+      when '5' then '6'
+      when '6' then '7'
+      when '7' then '8'
+      when '8' then '9'
+      when 'A' then 'B'
+      when 'B' then 'C'
+      else p.end
+    end
+    when n.direction = 'L' then
+      case p.end
+      when '3' then '2'
+      when '4' then '3'
+      when '6' then '5'
+      when '7' then '6'
+      when '8' then '7'
+      when '9' then '8'
+      when 'B' then 'A'
+      when 'C' then 'B'
+      else p.end
+    end
+  end as end
+  from press p
+  inner join tmp_2016_02b n
+    on (
+        p.position = n.position
+        and p.index + 1 = n.index
+        and p.rindex <> 1
+      ) or (
+        p.position + 1 = n.position
+        and p.rindex = 1
+        and n.index = 1
+    )
+)
+select
+*
+from press
+where rindex = 1
+order by position
+;
+
