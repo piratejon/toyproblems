@@ -99,7 +99,7 @@ from (
  d |    2 | 1 | 4
  e |    2 | 1 | 5
 */
-with items as (
+with recursive items as (
   select
     r.line
     , c1 || c2 || c3 || c4 || c5 computed_cksum
@@ -116,8 +116,47 @@ with items as (
   from items
   where computed_cksum = cksum
 )
+, part_1 as (
+  select
+    sum(room) part_1
+  from valid_items
+)
+, ciphertext as (
 select
-  sum(room) part_1
-from valid_items
+  v.line, v.cksum, v.room orig_room, v.room % 26 room, unnest(arr) i
+from valid_items v
+inner join (
+    select
+      string_to_array(input, '') arr
+      , row_number() over () as line
+    from tmp_2016_04
+) x
+on v.line = x.line
+)
+, decoder as (
+  select
+    line
+    , cksum
+    , orig_room
+    , room
+    , i
+  from ciphertext
+
+  union all
+
+  select
+    line
+    , cksum
+    , orig_room
+    , room - 1
+    , translate(i, 'abcdefghijklmnopqrstuvwxyz', 'bcdefghijklmnopqrstuvwxyza') i
+  from decoder
+  where room > 0
+)
+select
+*
+from decoder
+where room = 0
+and i like '%north%'
 ;
 
