@@ -31,7 +31,7 @@ from (
     k
     , pos
     , c
-    , row_number() over (partition by pos order by c desc) r
+    , row_number() over (partition by pos order by c) r
   from (
     select
       k
