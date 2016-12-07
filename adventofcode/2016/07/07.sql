@@ -11,7 +11,6 @@ create table tmp_2016_07 (input text)
 drop table if exists tmp_2016_07_ssl_check
 ;
 
-/*
 -- 65 is too low
 select
   line
@@ -55,7 +54,6 @@ from (
 ) w
 where h = 0 and abba > 0 -- part 1
 ;
-*/
 
 with ssl_check as (
   select
