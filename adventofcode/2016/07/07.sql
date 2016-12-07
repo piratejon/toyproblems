@@ -11,6 +11,7 @@ create table tmp_2016_07 (input text)
 drop table if exists tmp_2016_07b
 ;
 
+/*
 -- 65 is too low
 select
   line
@@ -52,6 +53,45 @@ from (
   ) x
   group by 1,2
 ) w
-where h = 0 and abba > 0
+where h = 0 and abba > 0 -- part 1
+;
+*/
+
+with ssl_check as (
+  select
+    line
+    , input
+    , c
+    , i
+    , sum(case c when '[' then 1 when ']' then -1 else 0 end) over (partition by line order by i) - case when c = '[' then 1 else 0 end h
+    , lag(c, 2) over (partition by line order by i)
+      || lag(c, 1) over (partition by line order by i)
+      || c aba
+    , lag(c, 1) over (partition by line order by i) || c || lag(c, 1) over (partition by line order by i) bab
+    , case when lag(c, 2) over (partition by line order by i) = c then 1 else 0 end aba_flag
+  from (
+    select
+      line
+      , input
+      , unnest(a) c
+      , generate_subscripts(a, 1) i
+    from (
+      select
+        row_number() over () as line
+        , input
+        , string_to_array(input, NULL) a
+      from tmp_2016_07
+    ) z
+  ) y
+)
+select distinct
+  aba.*
+from ssl_check aba
+inner join ssl_check bab
+  on 1=1
+  and aba.aba_flag = 1
+  and bab.aba_flag = 1
+  and aba.bab = bab.aba
+  and aba.h = 0 and bab.h = 1
 ;
 
