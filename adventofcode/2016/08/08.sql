@@ -8,6 +8,7 @@ create table tmp_2016_08 (input text)
 \copy tmp_2016_08 from './input'
 ;
 
+-- 19 is too low
 with recursive input_stream as (
   select
     line
@@ -47,7 +48,7 @@ with recursive input_stream as (
 
   union all
 
-  select
+  select distinct
     n.line
     -- , n.input
     , n.cmd
@@ -78,7 +79,10 @@ select
   line
   , count(*)
 from update_state
-group by line
+group by
+  line
+order by
+  line desc
 -- order by line, x, y
 ;
 
