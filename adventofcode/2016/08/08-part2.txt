@@ -1,0 +1,14 @@
+DROP TABLE
+DROP TABLE
+CREATE TABLE
+COPY 153
+SELECT 300
+   110
+
+ 0 | X | X | X | X |   |   |   | X | X |   | X  |    |    | X  |    | X  | X  | X  |    |    | X  |    |    | X  |    |    | X  | X  |    |    | X  | X  | X  |    |    | X  |    |    |    |    | X  |    |    |    | X  |    |    | X  | X  | 
+ 1 |   |   |   | X |   |   |   |   | X |   | X  |    |    | X  |    | X  |    |    | X  |    | X  |    | X  |    |    | X  |    |    | X  |    | X  |    |    | X  |    | X  |    |    |    |    | X  |    |    |    | X  |    |    |    | X  | 
+ 2 |   |   | X |   |   |   |   |   | X |   | X  | X  | X  | X  |    | X  |    |    | X  |    | X  | X  |    |    |    | X  |    |    |    |    | X  |    |    | X  |    | X  |    |    |    |    |    | X  |    | X  |    |    |    |    | X  | 
+ 3 |   | X |   |   |   |   |   |   | X |   | X  |    |    | X  |    | X  | X  | X  |    |    | X  |    | X  |    |    | X  |    |    |    |    | X  | X  | X  |    |    | X  |    |    |    |    |    |    | X  |    |    |    |    |    | X  | 
+ 4 | X |   |   |   |   | X |   |   | X |   | X  |    |    | X  |    | X  |    | X  |    |    | X  |    | X  |    |    | X  |    |    | X  |    | X  |    |    |    |    | X  |    |    |    |    |    |    | X  |    |    | X  |    |    | X  | 
+ 5 | X | X | X | X |   |   | X | X |   |   | X  |    |    | X  |    | X  |    |    | X  |    | X  |    |    | X  |    |    | X  | X  |    |    | X  |    |    |    |    | X  | X  | X  | X  |    |    |    | X  |    |    |    | X  | X  |    | 
+
