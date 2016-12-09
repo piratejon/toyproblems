@@ -34,11 +34,13 @@ with recursive input_stream as (
 )
 , prepare_grid as (
   select
-    generate_series(0, w - 1) x
-    , generate_series(0, h - 1) y
+    x
+    , y
   from (
     select distinct w, h from input_stream
-  ) x
+  ) i
+  cross join generate_series(0, w - 1) x
+  cross join generate_series(0, h - 1) y
 )
 , work_input_stream as (
   select
@@ -51,6 +53,8 @@ with recursive input_stream as (
     , p.x
     , p.y
     , case when i.cmd = 'rect' and p.x < i.a[1]::int and p.y < i.a[2]::int then 1 else 0 end v
+    , row_number() over (partition by i.line, p.y order by p.x) xn
+    , row_number() over (partition by i.line, p.x order by p.y) yn
   from input_stream i
   cross join prepare_grid p
   where i.line = 1
@@ -99,18 +103,22 @@ with recursive input_stream as (
       and i.a[3]::int = w.y
       and w.x < i.a[5]::int
       then lead(w.v, i.w - i.a[5]::int) over (partition by i.line, w.y order by w.x)
+
     else v
     end v
+    , row_number() over (partition by i.line, w.y order by w.x) xn
+    , row_number() over (partition by i.line, w.x order by w.y) yn
   from input_stream i
   inner join work_input_stream w
     on i.line = w.line + 1
 )
---select sum(v) from (
+select sum(v) from (
   select
     *
     , row_number() over (partition by x, y order by line desc) l
   from work_input_stream
-  order by line, x, y
---) x where l = 1
+  -- order by line, x, y
+)
+x where l = 1
 ;
 
