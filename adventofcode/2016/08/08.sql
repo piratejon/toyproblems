@@ -5,7 +5,7 @@ drop table if exists tmp_2016_08
 create table tmp_2016_08 (input text)
 ;
 
-\copy tmp_2016_08 from './test'
+\copy tmp_2016_08 from './input'
 ;
 
 -- 19 is too low
@@ -27,10 +27,9 @@ with recursive input_stream as (
       row_number() over () as line
       , input
       , regexp_split_to_array(input, E' \|=') a
-      , 7 w
-      , 3 h
+      , 50 w
+      , 6 h
     from tmp_2016_08
-    -- limit 4
   ) z
 )
 , prepare_grid as (
@@ -100,22 +99,18 @@ with recursive input_stream as (
       and i.a[3]::int = w.y
       and w.x < i.a[5]::int
       then lead(w.v, i.w - i.a[5]::int) over (partition by i.line, w.y order by w.x)
-
     else v
     end v
   from input_stream i
   inner join work_input_stream w
     on i.line = w.line + 1
 )
-select
-  line
-  , input
-  , cmd
-  , a
-  , x
-  , y
-  , v
-from work_input_stream
-order by line, x, y
+--select sum(v) from (
+  select
+    *
+    , row_number() over (partition by x, y order by line desc) l
+  from work_input_stream
+  order by line, x, y
+--) x where l = 1
 ;
 
