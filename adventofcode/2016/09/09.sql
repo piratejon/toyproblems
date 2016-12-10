@@ -96,6 +96,7 @@ with recursive input_stream as (
     and p.line = i.line
     and p.i + 1 = i.i
 )
+-- 136291 is too low
 , part_1 as (
   select
     line
