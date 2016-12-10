@@ -58,6 +58,7 @@ with recursive input_stream as (
     when p.state = 'collect repeat' and i.c = ')' then 'begin marker'
     when p.state = 'begin marker' then 'apply marker'
     when p.state = 'apply marker' and p.len_cnt > 1 then 'apply marker'
+    when p.state = 'apply marker' and p.len_cnt = 1 and i.c = '(' then 'begin length'
     else 'pass'
     end
 
@@ -85,7 +86,7 @@ with recursive input_stream as (
     , case
     when p.state = 'pass' and i.c <> '(' then 1
     when p.state = 'apply marker' and p.len_cnt > 1 then repeat
-    when p.state = 'apply marker' and p.len_cnt = 1 then 1
+    when p.state = 'apply marker' and p.len_cnt = 1 and i.c <> '(' then 1
     when p.state = 'begin marker' then repeat
     else 0
     end decompress_length
@@ -97,6 +98,7 @@ with recursive input_stream as (
     and p.i + 1 = i.i
 )
 -- 136291 is too low
+-- 138752 is too high
 , part_1 as (
   select
     line
@@ -107,7 +109,22 @@ with recursive input_stream as (
     line
     , input
 )
--- select *, sum(decompress_length) over (partition by line) decompress_length from parse where line = 6 order by line, i
-select * from part_1
+select
+  line
+  , c
+  , l
+  , state
+  , repeat
+  , rpt_cnt
+  , length
+  , len_cnt
+  , decompress_length
+  , sum(decompress_length) over (partition by line) total_decompress_length
+from parse
+where line = 1
+order by
+  line
+  , i
+-- select * from part_1
 ;
 
