@@ -5,7 +5,7 @@ drop table if exists tmp_2016_09
 create table tmp_2016_09 (input text)
 ;
 
-\copy tmp_2016_09 from './input'
+\copy tmp_2016_09 from './test2'
 ;
 
 with recursive input_stream as (
@@ -109,22 +109,90 @@ with recursive input_stream as (
     line
     , input
 )
+, parse2 as (
+  select
+    line
+    , i
+    , c
+    , case when c = '(' then 'collect length' else '' end state
+    , case when c <> '(' then 1 else 0 end a
+    , 0 lenb
+    , 0 rptb
+    , array[]::integer[] len
+    , array[]::integer[] rpt
+    , array[]::integer[] mrk
+  from input_stream
+  where i = 1
+
+  union all
+
+  select
+    i.line
+    , i.i
+    , i.c
+
+    , case
+    when state = 'collect length' and i.c <> 'x' then 'collect length'
+    when state = 'collect length' and i.c = 'x' then 'collect repeat'
+    when state = 'collect repeat' and i.c <> ')' then 'collect repeat'
+    when state = 'collect repeat' and i.c = ')' then 'end marker'
+    when state in ('','end marker') and i.c = '(' then 'collect length'
+    when state in ('','end marker') and i.c <> '(' then ''
+    end state
+
+    , case
+    when state in ('','end marker') and i.c <> '(' then 1
+    else 0
+    end a
+
+    , case
+    when state = 'collect length' and i.c <> 'x' then (10 * lenb) + i.c::int
+    else 0
+    end lenb
+
+    , case
+    when state = 'collect repeat' and i.c <> ')' then (10 * rptb) + i.c::int
+    else 0
+    end rptb
+
+    , case
+    when state = 'collect length' and i.c = 'x' then array_append(len, lenb)
+    else len
+    end len
+
+    , case
+    when state = 'collect repeat' and i.c = ')' then array_append(rpt, rptb)
+    else rpt
+    end rpt
+
+    , case
+    when state = 'collect repeat' and i.c = ')' then array_append(mrk, i.i)
+    else mrk
+    end mrk
+
+  from parse2 n
+  inner join input_stream i
+    on i.line = n.line
+    and i.i = n.i + 1
+)
 select
-  line
+  line l
+  , i
   , c
-  , l
   , state
-  , repeat
-  , rpt_cnt
-  , length
-  , len_cnt
-  , decompress_length
-  , sum(decompress_length) over (partition by line) total_decompress_length
-from parse
-where line = 1
+  , a
+  , len
+  , rpt
+  , mrk
+from parse2
+where line = 4
 order by
   line
   , i
 -- select * from part_1
 ;
+
+--X(8x2)(3x3)ABCY
+--X(3x3)ABC(3x3)ABCY
+--XABCABCABCABCABCABCY
 
