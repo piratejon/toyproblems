@@ -1,6 +1,6 @@
 /*
  * punter.cpp
- * jonathanwesleystone@gmail.com
+ * lamdbapunter@z10x.com
  * 2017-08-05
  * In which I attempt to participate in ICFP Contest 2017
  *    ... with a procedural language ;-)
