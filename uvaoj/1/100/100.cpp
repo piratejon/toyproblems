@@ -1,8 +1,23 @@
+/*
+ * UVA Online Judge problem 1-100
+ * 3n+1
+ * Problem statement:
+ * <https://uva.onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8&category=3&page=show_problem&problem=36>
+ * as accessed 2017-08-13
+ * This solution copyright jonathanwesleystone@gmail.com 2017
+ *
+ * My thoughts:
+ * There is no algorithm (***big assumption***)
+ * If we store the numbers traversed, we can memoize and save a lot of time on
+ * later inputs.
+ * */
+
 #ifndef ONLINE_JUDGE
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#endif // ONLINE_JUDGE
+#endif  // ONLINE_JUDGE
 
+#include <iostream>
 #include <list>
 #include <map>
 
@@ -30,14 +45,14 @@ int operate_loop(const int input) {
   return i;
 }
 
-int loop_with_cache(const int input, int & i) {
+int loop_with_cache(const int input, int * i) {
   int n = input, j;
 
   std::list<int> unsolved;
 
   std::map<int, int>::iterator it;
 
-  for (j = 0, i = 0; n != 1; j += 1, i += 1) {
+  for (j = 0, *i = 0; n != 1; j += 1, *i += 1) {
     it = solved.find(n);
     if (it != solved.end()) {
       j = it->second;
@@ -54,6 +69,11 @@ int loop_with_cache(const int input, int & i) {
   }
 
   return solved[input];
+}
+
+int loop_with_cache(const int input) {
+  int i;
+  return loop_with_cache(input, &i);
 }
 
 #ifndef ONLINE_JUDGE
@@ -79,21 +99,39 @@ TEST_CASE("looping driver", "[loop]") {
 TEST_CASE("loop with cache", "[loop]") {
   int i;
   REQUIRE(solved.end() == solved.find(22));
-  REQUIRE(16 == loop_with_cache(22, i));
+  REQUIRE(16 == loop_with_cache(22, &i));
   REQUIRE(solved.end() != solved.find(22));
   REQUIRE(16 == solved.find(22)->second);
   REQUIRE(15 == i);
-  REQUIRE(16 == loop_with_cache(22, i));
+  REQUIRE(16 == loop_with_cache(22, &i));
   REQUIRE(0 == i);
-  REQUIRE(16 == loop_with_cache(22, i));
+  REQUIRE(16 == loop_with_cache(22, &i));
   REQUIRE(0 == i);
-  REQUIRE(17 == loop_with_cache(44, i));
+  REQUIRE(17 == loop_with_cache(44, &i));
   REQUIRE(1 == i);
 }
-#endif // ONLINE_JUDGE
+
+TEST_CASE("real numbers", "[loop]") {
+  REQUIRE(1 == operate_loop(1));
+  REQUIRE(1 == loop_with_cache(1));
+  REQUIRE(1 == operate_loop(2));
+  REQUIRE(1 == loop_with_cache(2));
+  REQUIRE(10 == operate_loop(3));
+  REQUIRE(10 == loop_with_cache(3));
+}
+#endif  // ONLINE_JUDGE
 
 #ifdef ONLINE_JUDGE
 int main(int arfc, char ** arfv) {
+  int start, stop, i, n, x;
+  while (std::cin) {
+    std::cin >> start >> stop;
+    for (i = start, n = 0; i <= stop; i += 1) {
+      x = loop_with_cache(i);
+      std::cout << i << " " << x << std::endl;
+    }
+    std::cout << start << " " << stop << " " << n << std::endl;
+  }
   return 0;
 }
-#endif // ONLINE_JUDGE
+#endif  // ONLINE_JUDGE
