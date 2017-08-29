@@ -12,11 +12,6 @@
  * later inputs.
  * */
 
-#ifndef ONLINE_JUDGE
-#define CATCH_CONFIG_MAIN
-#include "catch.hpp"
-#endif  // ONLINE_JUDGE
-
 #include <iostream>
 #include <list>
 #include <map>
@@ -52,6 +47,11 @@ int loop_with_cache(const int input, int * i) {
 
   std::map<int, int>::iterator it;
 
+  if (input == 1) {
+    solved[1] = 1;
+    return 1;
+  }
+
   for (j = 0, *i = 0; n != 1; j += 1, *i += 1) {
     it = solved.find(n);
     if (it != solved.end()) {
@@ -65,6 +65,7 @@ int loop_with_cache(const int input, int * i) {
 
   while (unsolved.size() > 0) {
     solved[unsolved.back()] = j + unsolved.size();
+    std::cout << unsolved.back() << " " << solved[unsolved.back()] << " " << j << std::endl;
     unsolved.pop_back();
   }
 
@@ -109,13 +110,17 @@ TEST_CASE("loop with cache", "[loop]") {
   REQUIRE(0 == i);
   REQUIRE(17 == loop_with_cache(44, &i));
   REQUIRE(1 == i);
+  REQUIRE(1 == loop_with_cache(1, &i));
+  REQUIRE(1 == i);
 }
 
 TEST_CASE("real numbers", "[loop]") {
   REQUIRE(1 == operate_loop(1));
   REQUIRE(1 == loop_with_cache(1));
-  REQUIRE(1 == operate_loop(2));
-  REQUIRE(1 == loop_with_cache(2));
+  int result = operate_loop(2);
+  REQUIRE(2 == solved.size());
+  REQUIRE(2 == result);
+  REQUIRE(2 == loop_with_cache(2));
   REQUIRE(10 == operate_loop(3));
   REQUIRE(10 == loop_with_cache(3));
 }
