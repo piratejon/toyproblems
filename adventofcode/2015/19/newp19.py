@@ -13,7 +13,7 @@ class Replacement:
         '''generate all the single applications of this replacements'''
         splits = string.split(self.left)
 
-        for i in range(len(string) - len(self.left)):
+        for i in range(len(string) - len(self.left) + 1):
             if string[i:].startswith(self.left):
                 yield string[:i] + self.right + string[i + len(self.left):]
 
@@ -76,6 +76,7 @@ def Part1():
     unique_results = set()
     for r in ReplacerIterator(replacer):
         for new_molecule in r.apply(molecule):
+            print(new_molecule)
             unique_results.add(new_molecule)
 
     print(len(unique_results))
