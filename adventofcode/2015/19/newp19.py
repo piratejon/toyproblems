@@ -2,6 +2,8 @@
 try to solve 2015.19b in TYOOL 2017
 '''
 
+import sys
+
 class Replacement:
     '''One replacement entry.'''
 
@@ -20,6 +22,14 @@ class Replacement:
     def __repr__(self):
         return '{} => {}'.format(self.left, self.right)
 
+class ReversedReplacement(Replacement):
+    '''a reversed replacement entry'''
+
+    def __init__(self, replacement_string):
+        '''set me up'''
+        self.right, self.left = replacement_string.split(' => ')
+
+
 class Replacer:
     '''Does replacements to a molecule.'''
 
@@ -27,9 +37,9 @@ class Replacer:
         '''setup an empty replacement dict'''
         self.replacements = {}
 
-    def add_replacement(self, replacement_string):
+    def add_replacement(self, replacement_string, constructor = Replacement):
         '''add a replacement to our collection'''
-        replacement = Replacement(replacement_string)
+        replacement = constructor(replacement_string)
         if not replacement.left in self.replacements:
             self.replacements[replacement.left] = set()
         self.replacements[replacement.left].add(replacement)
@@ -60,13 +70,13 @@ class ReplacerIterator:
         self.i -= 1
         return self.replacements[self.i]
 
-def Part1():
+def Part1(filename):
     '''do part 1'''
     replacer = Replacer()
-    with open('input', 'r') as f:
+    with open(filename, 'r') as f:
         for line in f:
             if line != '\n':
-                replacer.add_replacement(line.strip())
+                replacer.add_replacement(line.strip(), constructor = Replacement)
             else:
                 break
         molecule = next(f).strip()
@@ -76,13 +86,16 @@ def Part1():
     unique_results = set()
     for r in ReplacerIterator(replacer):
         for new_molecule in r.apply(molecule):
-            print(new_molecule)
+            print(r, new_molecule)
             unique_results.add(new_molecule)
 
     print(len(unique_results))
 
-def main():
-    Part1()
+def main(args):
+    if len(args) == 0:
+        Part1('testinput')
+    for arg in args:
+        Part1(arg)
 
 if __name__ == '__main__':
-    main()
+    main(args = sys.argv[1:])
