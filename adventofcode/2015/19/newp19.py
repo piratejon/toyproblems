@@ -13,8 +13,6 @@ class Replacement:
 
     def apply(self, string):
         '''generate all the single applications of this replacements'''
-        splits = string.split(self.left)
-
         for i in range(len(string) - len(self.left) + 1):
             if string[i:].startswith(self.left):
                 yield string[:i] + self.right + string[i + len(self.left):]
@@ -29,17 +27,25 @@ class ReversedReplacement(Replacement):
         '''set me up'''
         self.right, self.left = replacement_string.split(' => ')
 
-
 class Replacer:
     '''Does replacements to a molecule.'''
 
-    def __init__(self):
-        '''setup an empty replacement dict'''
+    def __init__(self, filename, constructor=Replacement):
+        '''setup replacements from a file'''
         self.replacements = {}
+        self.replacement_constructor = constructor
 
-    def add_replacement(self, replacement_string, constructor = Replacement):
+        with open(filename, 'r') as fin:
+            for line in fin:
+                if line != '\n':
+                    self.add_replacement(line.strip())
+                else:
+                    break
+            self.molecule = next(fin).strip()
+
+    def add_replacement(self, replacement_string):
         '''add a replacement to our collection'''
-        replacement = constructor(replacement_string)
+        replacement = self.replacement_constructor(replacement_string)
         if not replacement.left in self.replacements:
             self.replacements[replacement.left] = set()
         self.replacements[replacement.left].add(replacement)
@@ -70,32 +76,82 @@ class ReplacerIterator:
         self.i -= 1
         return self.replacements[self.i]
 
-def Part1(filename):
+def part1(filename):
     '''do part 1'''
-    replacer = Replacer()
-    with open(filename, 'r') as f:
-        for line in f:
-            if line != '\n':
-                replacer.add_replacement(line.strip(), constructor = Replacement)
-            else:
-                break
-        molecule = next(f).strip()
 
-    print(molecule)
+    replacer = Replacer(filename)
+
+    print(replacer.molecule)
 
     unique_results = set()
-    for r in ReplacerIterator(replacer):
-        for new_molecule in r.apply(molecule):
-            print(r, new_molecule)
+    for replacement in ReplacerIterator(replacer):
+        for new_molecule in replacement.apply(replacer.molecule):
+            print(replacement, new_molecule)
             unique_results.add(new_molecule)
 
     print(len(unique_results))
 
+def part2_BFS(filename):
+    '''do part 2 - iterative BFS
+    this approach will probably arrive at the correct answer, given infinite tape
+    '''
+    replacer = Replacer(filename, constructor=ReversedReplacement)
+    target = 'e'
+
+    print(replacer.molecule)
+
+    worked = {replacer.molecule: 0} # molecule => steps to derive
+    unworked = set([replacer.molecule])
+
+    while unworked:
+        # print('stack size', len(unworked), unworked, worked)
+        molecule = unworked.pop()
+        for replacement in ReplacerIterator(replacer):
+            for new_molecule in replacement.apply(molecule):
+                if new_molecule not in worked:
+                    if new_molecule != molecule:
+                        unworked.add(new_molecule)
+                    worked[new_molecule] = worked[molecule] + 1
+                worked[new_molecule] = min(worked[molecule] + 1, worked[new_molecule])
+
+    print(target, worked[target])
+
+def part2_DFS(filename):
+    '''do part 2, DFS so we don't need so much memory'''
+
+    replacer = Replacer(filename, constructor=ReversedReplacement)
+    target = 'e'
+
+    print(replacer.molecule)
+
+    def recursive_dfs_search(molecule, depth = 0):
+        '''explore children before siblings'''
+        #print(depth, molecule)
+        if molecule == target:
+            print(target, depth, worked[target])
+        for replacement in ReplacerIterator(replacer):
+            for new_molecule in replacement.apply(molecule):
+                if new_molecule not in worked:
+                    worked[new_molecule] = worked[molecule] + 1
+                    if new_molecule != molecule:
+                        recursive_dfs_search(new_molecule, depth + 1)
+                worked[new_molecule] = min(worked[molecule] + 1, worked[new_molecule])
+
+    worked = {replacer.molecule: 0}
+
+    recursive_dfs_search(replacer.molecule)
+
+    print(target, worked[target])
+
+def part2(filename):
+    return part2_DFS(filename)
+
 def main(args):
+    '''driver'''
     if len(args) == 0:
-        Part1('testinput')
+        part2('testinput')
     for arg in args:
-        Part1(arg)
+        part2(arg)
 
 if __name__ == '__main__':
-    main(args = sys.argv[1:])
+    main(args=sys.argv[1:])
