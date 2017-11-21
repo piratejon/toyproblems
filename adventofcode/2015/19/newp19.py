@@ -2,6 +2,7 @@
 try to solve 2015.19b in TYOOL 2017
 '''
 
+import random
 import sys
 import re
 
@@ -144,6 +145,55 @@ def part2_dfs(filename):
 
     print(target, worked[target])
 
+class ReplacementSmart(Replacement):
+    '''a smart replacement, with the RHS decomposed into LHS and terminals'''
+
+    decomposition_expression = re.compile('[A-Z][a-z]*')
+
+    def __init__(self, string):
+        super().__init__(string)
+        self.decomposition = None
+
+    @staticmethod
+    def bare_decompose(right):
+        '''just try the decompose without all the checks'''
+        return ReplacementSmart.decomposition_expression.findall(right)
+
+    def decompose(self, lefts):
+        '''decompose RHS based on the provided LHS non-terminals'''
+        # find RHS that could be expanded by other productions
+        # this list is sorted by construction
+        leftsubs = []
+        for i in range(len(self.right)):
+            for _, left in lefts:
+                if self.right[i:].startswith(left):
+                    leftsubs.append((i, left))
+
+        # ensure rule decomposition starting points are unique
+        all_start_indices = [_[0] for _ in leftsubs]
+        assert sorted(all_start_indices) == sorted(set(all_start_indices))
+
+        # ensure no decomposition rules overlap
+        # leftsubs are sorted by construction
+        for i in range(len(leftsubs) - 1):
+            assert ((leftsubs[i][0] + len(leftsubs[i][1])) <
+                    (leftsubs[i + 1][0] + len(leftsubs[i + 1][1])))
+
+        # given that starting points are unique and substitutions do not
+        # overlap, we can now perform the unique decomposition
+        decomposition = ReplacementSmart.bare_decompose(self.right)
+        print(self, decomposition)
+
+        # make sure the parts equal the whole
+        assert self.right == ''.join(decomposition)
+
+        # make sure we used all the parts
+        for sub in leftsubs:
+            assert sub[1] in decomposition
+        assert len(leftsubs) <= len(decomposition)
+
+        self.decomposition = decomposition
+
 class ReplacerSmart:
     '''hint from reddit that the input has some structure'''
 
@@ -160,23 +210,22 @@ class ReplacerSmart:
         with open(filename, 'r') as fin:
             for line in fin:
                 if line != '\n':
-                    self.replacements.append(Replacement(line.strip()))
+                    self.replacements.append(ReplacementSmart(line.strip()))
                 else:
                     break
             self.molecule = next(fin).strip()
 
-        print(self.replacements, self.molecule)
+    def analyze_and_decompose(self):
+        '''
+        check various properties hold, and if so, decompose the RHS into
+        terminals and non-terminals.
 
-    def analyze_productions(self):
-        '''check for some patterns we could use to solve faster than brute force'''
-
-        decomposition_expression = re.compile('[A-Z][a-z]*')
+        the ReplacementSmart.decompose implements some additional checks
+        '''
 
         # what appears on the right that does not appear on the left?
         lefts = {_.left for _ in self.replacements}
-        print(sorted(lefts))
         lefts = [(i, left) for i, left in enumerate(lefts, 1)]
-        print(lefts)
 
         # every left starts with a capital letter except 'e'
         for left in lefts:
@@ -186,57 +235,106 @@ class ReplacerSmart:
         for left in lefts:
             assert left[1] == 'e' or (left[1][1:].lower() == left[1][1:])
 
-        def decompose(replacement, right, lefts):
-            '''
-            i want to assume the language described in the input is context-free
-            this method checks some assumptions around that without fully proving it
-            '''
-
-            # find RHS that could be expanded by other productions
-            # this list is sorted by construction
-            leftsubs = []
-            for i in range(len(right)):
-                for _, left in lefts:
-                    if right[i:].startswith(left):
-                        leftsubs.append((i, left))
-
-            # ensure rule decomposition starting points are unique
-            all_start_indices = [_[0] for _ in leftsubs]
-            assert sorted(all_start_indices) == sorted(set(all_start_indices))
-
-            # ensure no decomposition rules overlap
-            # leftsubs are sorted by construction
-            for i in range(len(leftsubs) - 1):
-                assert ((leftsubs[i][0] + len(leftsubs[i][1])) <
-                        (leftsubs[i + 1][0] + len(leftsubs[i + 1][1])))
-
-            # given that starting points are unique and substitutions do not
-            # overlap, we can now perform the unique decomposition
-            decomposition = decomposition_expression.findall(right)
-            print(replacement, decomposition)
-
-            # make sure the parts equal the whole
-            assert right == ''.join(decomposition)
-
-            # make sure we used all the parts
-            for sub in leftsubs:
-                assert sub[1] in decomposition
-            assert len(leftsubs) <= len(decomposition)
-
-            return decomposition
-
-        # does the right have multiple left-decompositions?
         for _ in self.replacements:
-            decompose(_, _.right, lefts)
+            _.decompose(lefts)
+
+class SymbolDictionary:
+    '''
+    symbol dictionary with canonical labels and virtual symbol generator
+    '''
+
+    def __init__(self, symbols):
+        '''initialize real symbols' canonical labels'''
+        sorted_symbols = sorted(symbols)
+        self.symbols = {_: i for i, _ in enumerate(sorted_symbols)}
+        self.reverse = [(i, _, 'a' + str(i)) for i, _ in enumerate(sorted_symbols)]
+        self.labels = {label: i for i, _, label in self.reverse}
+
+    def lookup_label(self, key):
+        '''retrieve the index of a relabeled symbol'''
+        return self.labels[key]
+
+    def lookup_symbol(self, key):
+        '''retrieve the index of an original symbol'''
+        return self.symbols[key]
+
+    def __getitem__(self, index):
+        '''retrieve the labels with the given index'''
+        return self.reverse[index]
+
+    def generate_label(self):
+        '''generate a new virtual label'''
+        label_id = len(self.labels)
+        label = 'a' + str(label_id)
+        self.reverse.append((label_id, None, label))
+        self.labels[label] = label_id
+        return (label, label_id)
+
+    def __repr__(self):
+        '''what do i look like to you'''
+        return repr(self.reverse)
+
+class ReplacerCNF:
+    '''a CNF replacer (language) based on a ReplacerSmart'''
+
+    def __init__(self, smart, start_symbol='e'):
+        '''
+        derive a ReplacerCNF from the ReplacerSmart
+        following <https://en.wikipedia.org/wiki/Chomsky_normal_form>
+        '''
+
+        # figure out what symbols we currently have, and relabel to make adding
+        # easier
+        self.symbols = SymbolDictionary(
+            {_.left for _ in smart.replacements} |
+            {right for _ in smart.replacements for right in _.decomposition})
+
+        print('symbols', self.symbols)
+
+        # START: make sure start_symbol doesn't appear on the RHS
+        for replacement in smart.replacements:
+            assert start_symbol not in replacement.decomposition
+
+        lefts = {_.left for _ in smart.replacements}
+        # TERM: eliminate rules with nonsolitary terminals
+        for replacement in smart.replacements:
+            if len(set(replacement.decomposition) - lefts) > 0:
+                print(replacement, "has non-solitary terminals", set(replacement.decomposition) - lefts)
 
 def part2_smart(filename):
     '''try to do something a little better than brute force'''
     replacer = ReplacerSmart(filename)
-    replacer.analyze_productions()
+    replacer.analyze_and_decompose()
+
+    cnfreplacer = ReplacerCNF(replacer)
+
+def part2_greedy(filename):
+    '''try a greedy DFS match'''
+    replacer = ReplacerSmart(filename)
+    replacer.analyze_and_decompose()
+
+    for replacement in replacer.replacements:
+        print(replacement, replacement.decomposition)
+    print(replacer.molecule)
+
+    random.seed()
+    counter = 0
+    old_string = ''
+    string = replacer.molecule
+    while string != 'e':
+        old_string = string
+        replacement = random.choice(replacer.replacements)
+        for i in range(len(string)):
+            if string[i:].startswith(replacement.right):
+                string = string[:i] + replacement.left + string[i + len(replacement.right):]
+                counter += 1
+                break
+    print(counter, string)
+
 
 def part2(filename):
     '''run one of our part2 strategies'''
-    return part2_smart(filename)
+    return part2_greedy(filename)
 
 def main(args):
     '''driver'''
