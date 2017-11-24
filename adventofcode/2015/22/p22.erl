@@ -5,6 +5,7 @@
   player_hp, player_armor, player_mana
   , boss_hp
   , effect_poison , effect_shield, effect_recharge
+  , spent_mana
 }).
 
 -define(BOSSDAMAGE, 8).
@@ -64,19 +65,40 @@ apply_recharge(State) ->
 
 % this spends the mana
 cast_missile(State) ->
-  State#state{player_mana=State#state.player_mana - 53, boss_hp=State#state.boss_hp - 4}.
+  State#state{
+    player_mana=State#state.player_mana - 53
+    , boss_hp=State#state.boss_hp - 4
+    , spent_mana=State#state.spent_mana + 53
+   }.
 
 cast_drain(State) ->
-  State#state{player_mana=State#state.player_mana - 73, player_hp=State#state.player_hp + 2, boss_hp=State#state.boss_hp - 2}.
+  State#state{
+    player_mana=State#state.player_mana - 73
+    , player_hp=State#state.player_hp + 2
+    , boss_hp=State#state.boss_hp - 2
+    , spent_mana=State#state.spent_mana + 73
+   }.
 
 cast_shield(State) ->
-  State#state{player_mana=State#state.player_mana - 113, effect_shield=6}.
+  State#state{
+    player_mana=State#state.player_mana - 113
+    , effect_shield=6
+    , spent_mana=State#state.spent_mana + 113
+   }.
 
 cast_poison(State) ->
-  State#state{player_mana=State#state.player_mana - 173, effect_poison=6}.
+  State#state{
+    player_mana=State#state.player_mana - 173
+    , effect_poison=6
+    , spent_mana=State#state.spent_mana + 173
+   }.
 
 cast_recharge(State) ->
-  State#state{player_mana=State#state.player_mana - 229, effect_recharge=5}.
+  State#state{
+    player_mana=State#state.player_mana - 229
+    , effect_recharge=5
+    , spent_mana=State#state.spent_mana + 229
+   }.
 
 apply_effects(State) ->
   % i hope it doesn't matter what order the effects apply in?
@@ -139,6 +161,7 @@ example_one_test() ->
        , player_armor=0
        , player_mana=250
        , boss_hp=13
+       , spent_mana = 0
       }
     , [
        poison
@@ -153,6 +176,7 @@ example_one_test() ->
      , effect_poison=3
      , effect_shield=undefined
      , effect_recharge=undefined
+     , spent_mana=226
     } = Result,
   player = get_winner(Result).
 
@@ -163,6 +187,7 @@ example_two_b_test() ->
          , player_armor=0
          , player_mana=250
          , boss_hp=14
+         , spent_mana=0
         }
     ),
   #state{
@@ -338,6 +363,7 @@ example_two_b_test() ->
      , effect_poison=3
      , effect_shield=undefined
      , effect_recharge=undefined
+     , spent_mana=641
     } = Result15,
 
   example_two_b_test_passed.
@@ -349,11 +375,9 @@ example_two_test() ->
        , player_armor=0
        , player_mana=250
        , boss_hp=14
+       , spent_mana=0
       }
-    , [
-       recharge
-       %, shield , drain , poison , missile
-      ]
+    , [recharge]
    ),
   #state{
      player_hp=2
@@ -385,6 +409,7 @@ example_two_test() ->
      , effect_poison=undefined
      , effect_shield=3
      , effect_recharge=undefined
+     , spent_mana=415
     } = Result2,
 
   example_two_test_passed.
