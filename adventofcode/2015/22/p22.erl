@@ -40,8 +40,8 @@ boss_turn(State) ->
 apply_poison(State) ->
   if
     State#state.effect_poison == undefined -> State;
-    State#state.effect_poison > 0 -> State#state{boss_hp=State#state.boss_hp - 3, effect_poison=State#state.effect_poison - 1};
-    State#state.effect_poison == 0 -> State#state{boss_hp=State#state.boss_hp - 3, effect_poison=undefined};
+    State#state.effect_poison == 1 -> State#state{boss_hp=State#state.boss_hp - 3, effect_poison=undefined};
+    State#state.effect_poison > 1 -> State#state{boss_hp=State#state.boss_hp - 3, effect_poison=State#state.effect_poison - 1};
     true -> State
   end.
 
@@ -49,16 +49,16 @@ apply_shield(State) ->
   if
     State#state.effect_shield == undefined -> State;
     State#state.effect_shield == 6 -> State#state{player_armor=State#state.player_armor + 7, effect_shield=State#state.effect_shield - 1};
-    State#state.effect_shield == 0 -> State#state{player_armor=State#state.player_armor - 7, effect_shield=undefined};
-    State#state.effect_shield > 0 -> State#state{effect_shield=State#state.effect_shield - 1};
+    State#state.effect_shield == 1 -> State#state{player_armor=State#state.player_armor - 7, effect_shield=undefined};
+    State#state.effect_shield > 1 -> State#state{effect_shield=State#state.effect_shield - 1};
     true -> State
   end.
 
 apply_recharge(State) ->
   if
     State#state.effect_recharge == undefined -> State;
-    State#state.effect_recharge == 0 -> State#state{player_mana=State#state.player_mana + 101, effect_recharge=undefined};
-    State#state.effect_recharge > 0 -> State#state{player_mana=State#state.player_mana + 101, effect_recharge=State#state.effect_recharge - 1};
+    State#state.effect_recharge == 1 -> State#state{player_mana=State#state.player_mana + 101, effect_recharge=undefined};
+    State#state.effect_recharge > 1 -> State#state{player_mana=State#state.player_mana + 101, effect_recharge=State#state.effect_recharge - 1};
     true -> State
   end.
 
@@ -263,6 +263,83 @@ example_two_b_test() ->
      , effect_recharge=1
     } = Result8,
 
+  Result9 = apply_effects(Result8),
+  #state{
+     player_hp=2
+     , player_armor=7
+     , player_mana=340
+     , boss_hp=12
+     , effect_poison=undefined
+     , effect_shield=3
+     , effect_recharge=undefined
+    } = Result9,
+
+  Result10 = player_turn(Result9, poison),
+  #state{
+     player_hp=2
+     , player_armor=7
+     , player_mana=167
+     , boss_hp=12
+     , effect_poison=6
+     , effect_shield=3
+     , effect_recharge=undefined
+    } = Result10,
+
+  Result11 = apply_effects(Result10),
+  #state{
+     player_hp=2
+     , player_armor=7
+     , player_mana=167
+     , boss_hp=9
+     , effect_poison=5
+     , effect_shield=2
+     , effect_recharge=undefined
+    } = Result11,
+
+  Result12 = boss_turn(Result11),
+  #state{
+     player_hp=1
+     , player_armor=7
+     , player_mana=167
+     , boss_hp=9
+     , effect_poison=5
+     , effect_shield=2
+     , effect_recharge=undefined
+    } = Result12,
+
+  Result13 = apply_effects(Result12),
+  #state{
+     player_hp=1
+     , player_armor=7
+     , player_mana=167
+     , boss_hp=6
+     , effect_poison=4
+     , effect_shield=1
+     , effect_recharge=undefined
+    } = Result13,
+
+  Result14 = player_turn(Result13, missile),
+  #state{
+     player_hp=1
+     , player_armor=7
+     , player_mana=114
+     , boss_hp=2
+     , effect_poison=4
+     , effect_shield=1
+     , effect_recharge=undefined
+    } = Result14,
+
+  Result15 = apply_effects(Result14),
+  #state{
+     player_hp=1
+     , player_armor=0
+     , player_mana=114
+     , boss_hp=-1
+     , effect_poison=3
+     , effect_shield=undefined
+     , effect_recharge=undefined
+    } = Result15,
+
   example_two_b_test_passed.
 
 example_two_test() ->
@@ -278,7 +355,6 @@ example_two_test() ->
        %, shield , drain , poison , missile
       ]
    ),
-  io:format("Result0: ~w~n", [Result0]),
   #state{
      player_hp=2
      , player_armor=0
@@ -290,7 +366,6 @@ example_two_test() ->
     } = Result0,
 
   Result1 = play_script(Result0, [shield]),
-  io:format("Result1: ~w~n", [Result1]),
   #state{
      player_hp=1
      , player_armor=7
@@ -302,7 +377,6 @@ example_two_test() ->
     } = Result1,
 
   Result2 = play_script(Result1, [drain]),
-  io:format("Result2: ~w~n", [Result2]),
   #state{
      player_hp=2
      , player_armor=7
@@ -310,8 +384,8 @@ example_two_test() ->
      , boss_hp=12
      , effect_poison=undefined
      , effect_shield=3
-     , effect_recharge=0
+     , effect_recharge=undefined
     } = Result2,
 
-  player = get_winner(Result2).
+  example_two_test_passed.
 
