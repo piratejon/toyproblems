@@ -1,10 +1,10 @@
 -module(p22).
+-include_lib("eunit/include/eunit.hrl").
 -export([example_one/0, play_script/2]).
 -record(state, {
   player_hp, player_armor, player_mana
   , boss_hp
   , effect_poison , effect_shield, effect_recharge
-  , winner
 }).
 
 -define(BOSSDAMAGE, 8).
@@ -84,11 +84,11 @@ apply_effects(State) ->
      )
    ).
 
-set_winner(State) ->
+get_winner(State) ->
   if % player death takes precedence
-    State#state.player_hp =< 0 -> State#state{winner=boss};
-    State#state.boss_hp =< 0 -> State#state{winner=player};
-    true -> State
+    State#state.player_hp =< 0 -> boss;
+    State#state.boss_hp =< 0 -> player;
+    true -> undefined
   end.
 
 has_winner(State) ->
@@ -143,7 +143,6 @@ example_one() ->
        , missile
       ]
    ),
-  FinalState = set_winner(State),
-  io_wrapper("winner: ~w~n", [FinalState#state.winner])
+  io_wrapper("winner: ~w~n", [get_winner(State)])
   .
 
