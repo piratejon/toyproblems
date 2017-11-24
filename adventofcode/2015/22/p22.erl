@@ -8,7 +8,12 @@
   , spent_mana
 }).
 
--define(BOSSDAMAGE, 8).
+-define(BOSS_DAMAGE, 8).
+-define(MISSILE_COST, 53).
+-define(DRAIN_COST, 73).
+-define(SHIELD_COST, 113).
+-define(POISON_COST, 173).
+-define(RECHARGE_COST, 229).
 
 io_wrapper(Left, Right) -> nil.
   %io:format(Left, Right).
@@ -34,8 +39,8 @@ player_turn(State, Spell) ->
   State0.
 
 boss_turn(State) ->
-  io_wrapper("Boss attacks for ~w damage.~n", [?BOSSDAMAGE]),
-  State#state{player_hp=max(1, State#state.player_hp - (?BOSSDAMAGE - State#state.player_armor))}.
+  io_wrapper("Boss attacks for ~w damage.~n", [?BOSS_DAMAGE]),
+  State#state{player_hp=max(1, State#state.player_hp - (?BOSS_DAMAGE - State#state.player_armor))}.
 
 % effects appliers, mana was already spent, decrements counter
 apply_poison(State) ->
@@ -66,38 +71,38 @@ apply_recharge(State) ->
 % this spends the mana
 cast_missile(State) ->
   State#state{
-    player_mana=State#state.player_mana - 53
+    player_mana=State#state.player_mana - ?MISSILE_COST
     , boss_hp=State#state.boss_hp - 4
-    , spent_mana=State#state.spent_mana + 53
+    , spent_mana=State#state.spent_mana + ?MISSILE_COST
    }.
 
 cast_drain(State) ->
   State#state{
-    player_mana=State#state.player_mana - 73
+    player_mana=State#state.player_mana - ?DRAIN_COST
     , player_hp=State#state.player_hp + 2
     , boss_hp=State#state.boss_hp - 2
-    , spent_mana=State#state.spent_mana + 73
+    , spent_mana=State#state.spent_mana + ?DRAIN_COST
    }.
 
 cast_shield(State) ->
   State#state{
-    player_mana=State#state.player_mana - 113
+    player_mana=State#state.player_mana - ?SHIELD_COST
     , effect_shield=6
-    , spent_mana=State#state.spent_mana + 113
+    , spent_mana=State#state.spent_mana + ?SHIELD_COST
    }.
 
 cast_poison(State) ->
   State#state{
-    player_mana=State#state.player_mana - 173
+    player_mana=State#state.player_mana - ?POISON_COST
     , effect_poison=6
-    , spent_mana=State#state.spent_mana + 173
+    , spent_mana=State#state.spent_mana + ?POISON_COST
    }.
 
 cast_recharge(State) ->
   State#state{
-    player_mana=State#state.player_mana - 229
+    player_mana=State#state.player_mana - ?RECHARGE_COST
     , effect_recharge=5
-    , spent_mana=State#state.spent_mana + 229
+    , spent_mana=State#state.spent_mana + ?RECHARGE_COST
    }.
 
 apply_effects(State) ->
@@ -153,6 +158,9 @@ play_script(State, []) ->
   State;
 play_script(State, [Spell | Rest]) ->
   play_script(play_turn(State, Spell), Rest).
+
+try_spell(State, Spell) ->
+  nil.
 
 example_one_test() ->
   Result = play_script(
