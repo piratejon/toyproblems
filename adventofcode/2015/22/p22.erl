@@ -18,32 +18,63 @@ print_state(State) ->
            ).
 
 print_turn_header(State, Who) ->
-  io_wrapper("-- ~w turn --~n", [Who]),
+  io_wrapper("~n-- ~w turn --~n", [Who]),
   print_state(State).
 
 player_turn(State, Spell) ->
-  print_turn_header(State, 'Player'),
-  State0 = apply_effects(State),
   io_wrapper("Player casts ~w~n", [Spell]),
+  State0 = if
+      Spell == poison -> cast_poison(State);
+      Spell == missile -> cast_missile(State);
+      Spell == drain -> cast_drain(State);
+      Spell == recharge -> cast_recharge(State);
+      Spell == shield -> cast_shield(State)
+  end,
   State0.
 
 boss_turn(State) ->
-  print_turn_header(State, 'Boss'),
-  State0 = apply_effects(State),
   io_wrapper("Boss attacks for ~w damage.~n", [?BOSSDAMAGE]),
-  State0#state{player_hp=State0#state.player_hp - ?BOSSDAMAGE}.
+  State#state{player_hp=State#state.player_hp - ?BOSSDAMAGE}.
 
-% effects appliers, mana was already spent
-apply_poison(State) -> State.
-apply_shield(State) -> State.
-apply_recharge(State) -> State.
+% effects appliers, mana was already spent, decrements counter
+apply_poison(State) ->
+  if
+    State#state.effect_poison == undefined -> State;
+    State#state.effect_poison >= 0 -> State#state{boss_hp=State#state.boss_hp - 3, effect_poison=State#state.effect_poison - 1};
+    true -> State
+  end.
+
+apply_shield(State) ->
+  if
+    State#state.effect_shield == undefined -> State;
+    State#state.effect_shield == 6 -> State#state{player_armor=State#state.player_armor + 7, effect_shield=State#state.effect_shield - 1};
+    State#state.effect_shield > 0 -> State#state{effect_shield=State#state.effect_shield - 1};
+    State#state.effect_shield == 0 -> State#state{player_armor=State#state.player_armor - 7, effect_shield=State#state.effect_shield - 1};
+    true -> State
+  end.
+
+apply_recharge(State) ->
+  if
+    State#state.effect_recharge == undefined -> State;
+    State#state.effect_recharge >= 0 -> State#state{player_mana=State#state.player_mana + 101, effect_recharge=State#state.effect_recharge - 1};
+    true -> State
+  end.
 
 % this spends the mana
-cast_poison(State) -> State.
-cast_shield(State) -> State.
-cast_recharge(State) -> State.
-cast_missile(State) -> State.
-cast_drain(State) -> State.
+cast_missile(State) ->
+  State#state{player_mana=State#state.player_mana - 53, boss_hp=State#state.boss_hp - 4}.
+
+cast_drain(State) ->
+  State#state{player_mana=State#state.player_mana - 73, player_hp=State#state.player_hp + 2, boss_hp=State#state.boss_hp - 2}.
+
+cast_shield(State) ->
+  State#state{player_mana=State#state.player_mana - 113, effect_shield=6}.
+
+cast_poison(State) ->
+  State#state{player_mana=State#state.player_mana - 173, effect_poison=6}.
+
+cast_recharge(State) ->
+  State#state{player_mana=State#state.player_mana - 229, effect_recharge=5}.
 
 apply_effects(State) ->
   % i hope it doesn't matter what order the effects apply in?
@@ -53,28 +84,44 @@ apply_effects(State) ->
      )
    ).
 
-set_winner_status(State) ->
+set_winner(State) ->
   if % player death takes precedence
     State#state.player_hp =< 0 -> State#state{winner=boss};
     State#state.boss_hp =< 0 -> State#state{winner=player};
     true -> State
   end.
 
-play_turn(State, Spell) ->
-  State0 = set_winner_status(apply_effects(State)),
-  State1 = set_winner_status(if
-    State0#state.winner == undefined -> player_turn(State0, Spell);
-    true -> State0
-  end),
-  State2 = set_winner_status(if
-    State1#state.winner == undefined -> apply_effects(State1);
-    true -> State1
-  end),
-  State3 = set_winner_status(if
-    State2#state.winner == undefined -> boss_turn(State2);
-    true -> State2
-  end),
-  set_winner_status(State3).
+has_winner(State) ->
+  State#state.player_hp =< 0 orelse State#state.boss_hp =< 0.
+
+play_turn(State0, Spell) ->
+  print_turn_header(State0, 'Player'),
+
+  Has_Winner0 = has_winner(State0),
+  State1 = if
+    Has_Winner0 -> State0;
+    true -> apply_effects(State0)
+  end,
+
+  Has_Winner1 = has_winner(State1),
+  State2 = if
+    Has_Winner1 -> State1;
+    true -> player_turn(State1, Spell)
+  end,
+
+  print_turn_header(State2, 'Boss'),
+
+  Has_Winner2 = has_winner(State2),
+  State3 = if
+    Has_Winner2 -> State2;
+    true -> apply_effects(State2)
+  end,
+
+  Has_Winner3 = has_winner(State3),
+  if
+    Has_Winner3 -> State3;
+    true -> boss_turn(State3)
+  end.
 
 play_script(State, []) ->
   print_state(State),
@@ -93,8 +140,10 @@ example_one() ->
       }
     , [
        poison
-       , magicmissile
+       , missile
       ]
    ),
-  io_wrapper("winner: ~w~n", [State#state.winner])
+  FinalState = set_winner(State),
+  io_wrapper("winner: ~w~n", [FinalState#state.winner])
   .
+
