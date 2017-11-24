@@ -1,6 +1,6 @@
 -module(p22).
 -include_lib("eunit/include/eunit.hrl").
--export([example_one/0, play_script/2]).
+-export([play_script/2]).
 -record(state, {
   player_hp, player_armor, player_mana
   , boss_hp
@@ -9,8 +9,8 @@
 
 -define(BOSSDAMAGE, 8).
 
-io_wrapper(Left, Right) ->
-  io:format(Left, Right).
+io_wrapper(Left, Right) -> nil.
+  %io:format(Left, Right).
 
 print_state(State) ->
   io_wrapper("- Player has ~w hit points, ~w armor, ~w mana~n- Boss has ~w hit points~n- Effects: Poison ~w, Shield ~w, Recharge ~w~n",
@@ -130,8 +130,8 @@ play_script(State, []) ->
 play_script(State, [Spell | Rest]) ->
   play_script(play_turn(State, Spell), Rest).
 
-example_one() ->
-  State = play_script(
+example_one_test() ->
+  Result = play_script(
     #state{
        player_hp=10
        , player_armor=0
@@ -143,6 +143,14 @@ example_one() ->
        , missile
       ]
    ),
-  io_wrapper("winner: ~w~n", [get_winner(State)])
-  .
+  #state{
+     player_hp=2
+     , player_armor=0
+     , player_mana=24
+     , boss_hp=0
+     , effect_poison=3
+     , effect_recharge=undefined
+     , effect_shield=undefined
+    } = Result,
+  player = get_winner(Result).
 
