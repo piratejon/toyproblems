@@ -4,16 +4,25 @@
 -record(state, {
   player_hp, player_armor, player_mana
   , boss_hp
+  , boss_damage
   , effect_poison , effect_shield, effect_recharge
   , spent_mana
 }).
 
--define(BOSS_DAMAGE, 8).
 -define(MISSILE_COST, 53).
 -define(DRAIN_COST, 73).
 -define(SHIELD_COST, 113).
 -define(POISON_COST, 173).
 -define(RECHARGE_COST, 229).
+
+spell_cost(Spell) ->
+  case Spell of
+    missile -> ?MISSILE_COST;
+    drain -> ?DRAIN_COST;
+    shield -> ?SHIELD_COST;
+    poison -> ?POISON_COST;
+    recharge -> ?RECHARGE_COST
+  end.
 
 io_wrapper(Left, Right) -> nil.
   %io:format(Left, Right).
@@ -39,8 +48,8 @@ player_turn(State, Spell) ->
   State0.
 
 boss_turn(State) ->
-  io_wrapper("Boss attacks for ~w damage.~n", [?BOSS_DAMAGE]),
-  State#state{player_hp=max(1, State#state.player_hp - (?BOSS_DAMAGE - State#state.player_armor))}.
+  io_wrapper("Boss attacks for ~w damage.~n", [State#state.boss_damage]),
+  State#state{player_hp=max(1, State#state.player_hp - (State#state.boss_damage - State#state.player_armor))}.
 
 % effects appliers, mana was already spent, decrements counter
 apply_poison(State) ->
@@ -160,17 +169,48 @@ play_script(State, [Spell | Rest]) ->
   play_script(play_turn(State, Spell), Rest).
 
 try_spell(State, Spell) ->
-  nil.
+  Cost = spell_cost(Spell),
+  play_next_round(if
+    State#state.player_mana >= Cost -> play_turn(State, Spell);
+    true -> State
+  end).
+
+play_next_round(State) ->
+  HasWinner = has_winner(State),
+  if not HasWinner ->
+    MissileState = try_spell(State, missile),
+    DrainState = try_spell(State, drain),
+    ShieldState = try_spell(State, shield),
+    PoisonState = try_spell(State, poison),
+    RechargeState = try_spell(State, recharge);
+    true -> State
+  end.
+
+blank_state() ->
+  #state{
+     player_hp=0
+     , player_armor=0
+     , player_mana=0
+     , boss_hp=0
+     , boss_damage=0
+  }.
+
+part1_start_search() ->
+  State = (blank_state()),
+  play_next_round(State#state{
+    player_hp=50, player_mana=500, boss_hp=51, boss_damage=9
+  }).
 
 example_one_test() ->
+  Init = blank_state(),
   Result = play_script(
-    #state{
+    Init#state{
        player_hp=10
-       , player_armor=0
        , player_mana=250
        , boss_hp=13
-       , spent_mana = 0
-      }
+       , boss_damage=8
+       , spent_mana=0
+    }
     , [
        poison
        , missile
@@ -181,6 +221,7 @@ example_one_test() ->
      , player_armor=0
      , player_mana=24
      , boss_hp=0
+     , boss_damage=8
      , effect_poison=3
      , effect_shield=undefined
      , effect_recharge=undefined
@@ -195,6 +236,7 @@ example_two_b_test() ->
          , player_armor=0
          , player_mana=250
          , boss_hp=14
+         , boss_damage=8
          , spent_mana=0
         }
     ),
@@ -383,6 +425,7 @@ example_two_test() ->
        , player_armor=0
        , player_mana=250
        , boss_hp=14
+       , boss_damage=8
        , spent_mana=0
       }
     , [recharge]
