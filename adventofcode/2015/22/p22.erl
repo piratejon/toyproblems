@@ -1,6 +1,6 @@
 -module(p22).
 -include_lib("eunit/include/eunit.hrl").
--export([play_script/2]).
+-export([play_script/2, part1_start_search/0]).
 -record(state, {
   player_hp, player_armor, player_mana
   , boss_hp
@@ -38,12 +38,13 @@ print_turn_header(State, Who) ->
 
 player_turn(State, Spell) ->
   io_wrapper("Player casts ~w~n", [Spell]),
+  Cost = spell_cost(Spell),
   State0 = if
-      Spell == poison -> cast_poison(State);
-      Spell == missile -> cast_missile(State);
-      Spell == drain -> cast_drain(State);
-      Spell == recharge -> cast_recharge(State);
-      Spell == shield -> cast_shield(State)
+      Spell == poison -> cast_poison(State, Cost);
+      Spell == missile -> cast_missile(State, Cost);
+      Spell == drain -> cast_drain(State, Cost);
+      Spell == recharge -> cast_recharge(State, Cost);
+      Spell == shield -> cast_shield(State, Cost)
   end,
   State0.
 
@@ -78,40 +79,40 @@ apply_recharge(State) ->
   end.
 
 % this spends the mana
-cast_missile(State) ->
+cast_missile(State, Cost) ->
   State#state{
-    player_mana=State#state.player_mana - ?MISSILE_COST
+    player_mana=State#state.player_mana - Cost
     , boss_hp=State#state.boss_hp - 4
-    , spent_mana=State#state.spent_mana + ?MISSILE_COST
+    , spent_mana=State#state.spent_mana + Cost
    }.
 
-cast_drain(State) ->
+cast_drain(State, Cost) ->
   State#state{
-    player_mana=State#state.player_mana - ?DRAIN_COST
+    player_mana=State#state.player_mana - Cost
     , player_hp=State#state.player_hp + 2
     , boss_hp=State#state.boss_hp - 2
-    , spent_mana=State#state.spent_mana + ?DRAIN_COST
+    , spent_mana=State#state.spent_mana + Cost
    }.
 
-cast_shield(State) ->
+cast_shield(State, Cost) ->
   State#state{
-    player_mana=State#state.player_mana - ?SHIELD_COST
+    player_mana=State#state.player_mana - Cost
     , effect_shield=6
-    , spent_mana=State#state.spent_mana + ?SHIELD_COST
+    , spent_mana=State#state.spent_mana + Cost
    }.
 
-cast_poison(State) ->
+cast_poison(State, Cost) ->
   State#state{
-    player_mana=State#state.player_mana - ?POISON_COST
+    player_mana=State#state.player_mana - Cost
     , effect_poison=6
-    , spent_mana=State#state.spent_mana + ?POISON_COST
+    , spent_mana=State#state.spent_mana + Cost
    }.
 
-cast_recharge(State) ->
+cast_recharge(State, Cost) ->
   State#state{
-    player_mana=State#state.player_mana - ?RECHARGE_COST
+    player_mana=State#state.player_mana - Cost
     , effect_recharge=5
-    , spent_mana=State#state.spent_mana + ?RECHARGE_COST
+    , spent_mana=State#state.spent_mana + Cost
    }.
 
 apply_effects(State) ->
@@ -170,10 +171,10 @@ play_script(State, [Spell | Rest]) ->
 
 try_spell(State, Spell) ->
   Cost = spell_cost(Spell),
-  play_next_round(if
-    State#state.player_mana >= Cost -> play_turn(State, Spell);
+  if
+    State#state.player_mana >= Cost -> play_next_round(play_turn(State, Spell));
     true -> State
-  end).
+  end.
 
 play_next_round(State) ->
   HasWinner = has_winner(State),
@@ -193,13 +194,16 @@ blank_state() ->
      , player_mana=0
      , boss_hp=0
      , boss_damage=0
+     , spent_mana=0
   }.
 
 part1_start_search() ->
   State = (blank_state()),
-  play_next_round(State#state{
+  OptimalState = play_next_round(State#state{
     player_hp=50, player_mana=500, boss_hp=51, boss_damage=9
-  }).
+  }),
+  true = OptimalState#state.player_hp > 0 andalso OptimalState#state.boss_hp =< 0
+  .
 
 example_one_test() ->
   Init = blank_state(),
