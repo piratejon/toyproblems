@@ -1,6 +1,6 @@
 -module(p22).
 -include_lib("eunit/include/eunit.hrl").
--export([play_script/2, part1_start_search/0]).
+-export([play_script/2, part1_start_state_search/0]).
 -record(state, {
   player_hp, player_armor, player_mana
   , boss_hp
@@ -24,8 +24,8 @@ spell_cost(Spell) ->
     recharge -> ?RECHARGE_COST
   end.
 
-io_wrapper(Left, Right) -> nil.
-  %io:format(Left, Right).
+io_wrapper(Left, Right) -> %nil.
+  io:format(Left, Right).
 
 print_state(State) ->
   io_wrapper("- Player has ~w hit points, ~w armor, ~w mana~n- Boss has ~w hit points~n- Effects: Poison ~w, Shield ~w, Recharge ~w~n",
@@ -50,7 +50,7 @@ player_turn(State, Spell) ->
 
 boss_turn(State) ->
   io_wrapper("Boss attacks for ~w damage.~n", [State#state.boss_damage]),
-  State#state{player_hp=max(1, State#state.player_hp - (State#state.boss_damage - State#state.player_armor))}.
+  State#state{player_hp=State#state.player_hp - max(1, State#state.boss_damage - State#state.player_armor)}.
 
 % effects appliers, mana was already spent, decrements counter
 apply_poison(State) ->
@@ -134,6 +134,8 @@ has_winner(State) ->
   State#state.player_hp =< 0 orelse State#state.boss_hp =< 0.
 
 play_turn(State0, Spell) ->
+  % this exits as soon as a winner is determined i.e. a round will only
+  % complete if no one dies
   print_turn_header(State0, 'Player'),
 
   Has_Winner0 = has_winner(State0),
@@ -170,22 +172,21 @@ play_script(State, [Spell | Rest]) ->
   play_script(play_turn(State, Spell), Rest).
 
 try_spell(State, Spell) ->
+  HasWinner = has_winner(State),
   Cost = spell_cost(Spell),
-  if
-    State#state.player_mana >= Cost -> play_next_round(play_turn(State, Spell));
+  TriedState = if
+    HasWinner -> State;
+    State#state.player_mana >= Cost -> play_turn(State, Spell);
     true -> State
+  end,
+
+  if
+    TriedState == State -> State;
+    true -> part1_state_search(TriedState)
   end.
 
-play_next_round(State) ->
-  HasWinner = has_winner(State),
-  if not HasWinner ->
-    MissileState = try_spell(State, missile),
-    DrainState = try_spell(State, drain),
-    ShieldState = try_spell(State, shield),
-    PoisonState = try_spell(State, poison),
-    RechargeState = try_spell(State, recharge);
-    true -> State
-  end.
+part1_state_search(State) ->
+  try_spell(State, drain).
 
 blank_state() ->
   #state{
@@ -197,12 +198,14 @@ blank_state() ->
      , spent_mana=0
   }.
 
-part1_start_search() ->
+part1_start_state_search() ->
   State = (blank_state()),
-  OptimalState = play_next_round(State#state{
-    player_hp=50, player_mana=500, boss_hp=51, boss_damage=9
+  OptimalState = part1_state_search(State#state{
+    % player_hp=50, player_mana=500, boss_hp=51, boss_damage=9
+    player_hp=10, player_mana=250, boss_hp=13, boss_damage=8
   }),
-  true = OptimalState#state.player_hp > 0 andalso OptimalState#state.boss_hp =< 0
+  true = OptimalState#state.player_hp > 0 andalso OptimalState#state.boss_hp =< 0,
+  OptimalState#state.spent_mana
   .
 
 example_one_test() ->
