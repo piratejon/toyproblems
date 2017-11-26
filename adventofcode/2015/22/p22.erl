@@ -24,8 +24,8 @@ spell_cost(Spell) ->
     recharge -> ?RECHARGE_COST
   end.
 
-io_wrapper(Left, Right) -> %nil.
-  io:format(Left, Right).
+io_wrapper(Left, Right) -> nil.
+  %io:format(Left, Right).
 
 print_state(State) ->
   io_wrapper("- Player has ~w hit points, ~w armor, ~w mana, ~w spent~n- Boss has ~w hit points~n- Effects: Poison ~w, Shield ~w, Recharge ~w~n",
@@ -222,8 +222,8 @@ blank_state() ->
 part1_start_state_search() ->
   State = (blank_state()),
   OptimalState = part1_state_search(State#state{
-    % player_hp=50, player_mana=500, boss_hp=51, boss_damage=9
-    player_hp=10, player_mana=250, boss_hp=13, boss_damage=8
+    player_hp=50, player_mana=500, boss_hp=51, boss_damage=9
+    %player_hp=10, player_mana=250, boss_hp=13, boss_damage=8
   }),
   print_state(OptimalState),
   true = OptimalState#state.player_hp > 0 andalso OptimalState#state.boss_hp =< 0,
