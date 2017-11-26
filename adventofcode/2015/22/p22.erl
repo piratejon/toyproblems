@@ -28,8 +28,8 @@ io_wrapper(Left, Right) -> %nil.
   io:format(Left, Right).
 
 print_state(State) ->
-  io_wrapper("- Player has ~w hit points, ~w armor, ~w mana~n- Boss has ~w hit points~n- Effects: Poison ~w, Shield ~w, Recharge ~w~n",
-            [State#state.player_hp, State#state.player_armor, State#state.player_mana, State#state.boss_hp, State#state.effect_poison, State#state.effect_shield, State#state.effect_recharge]
+  io_wrapper("- Player has ~w hit points, ~w armor, ~w mana, ~w spent~n- Boss has ~w hit points~n- Effects: Poison ~w, Shield ~w, Recharge ~w~n",
+            [State#state.player_hp, State#state.player_armor, State#state.player_mana, State#state.spent_mana, State#state.boss_hp, State#state.effect_poison, State#state.effect_shield, State#state.effect_recharge]
            ).
 
 print_turn_header(State, Who) ->
@@ -39,14 +39,14 @@ print_turn_header(State, Who) ->
 player_turn(State, Spell) ->
   io_wrapper("Player casts ~w~n", [Spell]),
   Cost = spell_cost(Spell),
-  State0 = if
+  % invalid spell name fails
+  if
       Spell == poison -> cast_poison(State, Cost);
       Spell == missile -> cast_missile(State, Cost);
       Spell == drain -> cast_drain(State, Cost);
       Spell == recharge -> cast_recharge(State, Cost);
       Spell == shield -> cast_shield(State, Cost)
-  end,
-  State0.
+  end.
 
 boss_turn(State) ->
   io_wrapper("Boss attacks for ~w damage.~n", [State#state.boss_damage]),
@@ -117,11 +117,16 @@ cast_recharge(State, Cost) ->
 
 apply_effects(State) ->
   % i hope it doesn't matter what order the effects apply in?
-  apply_poison(
+  %io_wrapper("Applying effects with current state:~n", []),
+  %print_state(State),
+  NewState = apply_poison(
     apply_shield(
       apply_recharge(State)
      )
-   ).
+   ),
+  %io_wrapper("Updated state:~n", []),
+  %print_state(NewState),
+  NewState.
 
 get_winner(State) ->
   if % player death takes precedence
@@ -176,7 +181,11 @@ try_spell(State, Spell) ->
   Cost = spell_cost(Spell),
   TriedState = if
     HasWinner -> State;
-    State#state.player_mana >= Cost -> play_turn(State, Spell);
+    State#state.player_mana >= Cost
+      andalso (Spell /= shield orelse State#state.effect_shield == undefined)
+      andalso (Spell /= poison orelse State#state.effect_poison == undefined)
+      andalso (Spell /= recharge orelse State#state.effect_recharge == undefined)
+      -> play_turn(State, Spell);
     true -> State
   end,
 
@@ -186,7 +195,19 @@ try_spell(State, Spell) ->
   end.
 
 part1_state_search(State) ->
-  try_spell(State, drain).
+  Sorted = lists:sort(fun(A, B) -> A#state.spent_mana =< B#state.spent_mana end,
+     lists:filter(fun(X) -> get_winner(X) == player end, [
+       try_spell(State, missile)
+       , try_spell(State, drain)
+       , try_spell(State, shield)
+       , try_spell(State, poison)
+       , try_spell(State, recharge)
+      ])
+    ),
+  if
+    length(Sorted) > 0 -> lists:nth(1, Sorted);
+    true -> State
+  end.
 
 blank_state() ->
   #state{
@@ -204,6 +225,7 @@ part1_start_state_search() ->
     % player_hp=50, player_mana=500, boss_hp=51, boss_damage=9
     player_hp=10, player_mana=250, boss_hp=13, boss_damage=8
   }),
+  print_state(OptimalState),
   true = OptimalState#state.player_hp > 0 andalso OptimalState#state.boss_hp =< 0,
   OptimalState#state.spent_mana
   .
