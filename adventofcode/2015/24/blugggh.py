@@ -30,7 +30,8 @@ def part1_bruteforce(filename, group_size=3):
 
 def main(args):
     '''driver'''
-    part1_bruteforce(args[0])
+    #part1_bruteforce(args[0])
+    part1_bruteforce(args[0], group_size=4) # part2
 
 if __name__ == '__main__':
     main(sys.argv[1:] or ['test.input'])
