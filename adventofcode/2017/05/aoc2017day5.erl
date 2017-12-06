@@ -53,7 +53,27 @@ part2(Filename) ->
   io:format("Input length: ~w~n", [array:size(Input)]),
   io:format("Part 2 result: ~w~n", [solve_part2(Input, 0, array:size(Input))]).
 
+solve_part2_processdict(PC, UpperBound, Counter) ->
+  %io:format("PC: ~w, C: ~w~n", [PC, Counter]),
+  if PC < 0 orelse PC >= UpperBound -> Counter;
+     true ->
+       JmpRel = erlang:get({'p', PC}),
+       Modify = if
+           JmpRel >= 3 -> JmpRel - 1;
+           true -> JmpRel + 1
+       end,
+       erlang:put({'p', PC}, Modify),
+       solve_part2_processdict(PC + JmpRel, UpperBound, Counter + 1)
+  end.
+
+part2_process_dict(Filename) ->
+  List = read(Filename),
+  lists:map(fun(I) -> erlang:put({'p', I}, lists:nth(I + 1, List)) end, lists:seq(0, length(List) - 1)),
+  io:format("Part 2 result: ~w~n", [solve_part2_processdict(0, length(List), 0)]),
+  true.
+
 main(_) ->
   %part1('input'),
-  part2('input'),
+  %part2('input'),
+  part2_process_dict('input'),
   true.
