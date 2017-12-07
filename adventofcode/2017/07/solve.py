@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-filename = 'input'
+import sys
+
+filename = 'test.input' if len(sys.argv) != 2 else sys.argv[1]
 
 # part1
 with open(filename, 'r') as fin:
@@ -31,12 +33,27 @@ def find_unbalanced_child(root, tree, weights):
                 cw[w] = []
             cw[w].append(child)
         if len(cw.keys()) > 1:
-            for weight, children in cw.items():
-                if len(children) == 1:
-                    print(children[0], weights[children[0]], cw)
-                    return find_unbalanced_child(children[0], tree, weights)
-
+            # assume two weights
+            ws = sorted([(k, v) for k, v in cw.items()], key=lambda x: len(x[1]))
+            print(ws)
+            u = find_unbalanced_child(ws[0][1][0], tree, weights)
+            if u:
+                return u
+            else:
+                return (ws[0][1][0], weights[ws[0][1][0]], ws[0][0] - ws[1][0], weights[ws[0][1][0]] - (ws[0][0] - ws[1][0]))
     return None
+
+def find_balanced_children(root, tree, weights):
+    if root in tree:
+        cw = {}
+        for child in tree[root]:
+            w = subtree_sum(child, tree, weights)
+            if w not in cw:
+                cw[w] = []
+            cw[w].append(child)
+            find_balanced_children(child, tree, weights)
+        if len(cw.keys()) != 1:
+            print(root, weights[root], 'unbalanced', cw)
 
 with open(filename, 'r') as fin:
     parents = {}
@@ -59,4 +76,5 @@ with open(filename, 'r') as fin:
             tree[v] = set()
         tree[v].add(k)
 
+    find_balanced_children(root, tree, weights)
     print(find_unbalanced_child(root, tree, weights))
