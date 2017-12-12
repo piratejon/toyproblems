@@ -2,6 +2,8 @@
 
 '''solve aoc 2017 day 10'''
 
+import functools
+import operator
 import sys
 
 class Knot:
@@ -51,6 +53,14 @@ class Knot:
         print('reverse', length, len(revme), revme, reved)
         self[self.curpos:self.curpos + length] = reved
 
+    def finalize(self):
+        '''sparse hash, dense hash, etc'''
+
+        return [
+            functools.reduce(operator.xor, [self[_] for _ in range(i, i + 16)])
+            for i in range(0, 256, 16)
+        ]
+
 def main(filename):
     '''driver'''
     if filename:
@@ -66,6 +76,21 @@ def main(filename):
         print()
     print(knot.list)
     print(knot.list[0] * knot.list[1])
+
+    if filename:
+        with open(filename, 'r') as fin:
+            ropelen, llist = 256, [ord(_) for _ in fin.read().strip()]
+    else:
+        ropelen, llist = 256, [ord(_) for _ in '']
+
+    llist += [17, 31, 73, 47, 23]
+
+    newknot = Knot(ropelen)
+    for i in range(64):
+        for _ in llist:
+            newknot.do_it(_)
+
+    print(''.join('{:02x}'.format(_) for _ in newknot.finalize()))
 
 if __name__ == '__main__':
     main(sys.argv[1] if len(sys.argv) == 2 else None)
