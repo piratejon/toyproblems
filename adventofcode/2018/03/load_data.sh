@@ -48,7 +48,7 @@ with claims as (
     , b.a b
     , b.x0 bx0
     , b.y0 by0
-    , a.x1 bx1
+    , b.x1 bx1
     , b.y1 by1
     , case
       when a.x1 >= b.x0
@@ -59,18 +59,18 @@ with claims as (
     overlap
   from claims a
   inner join claims b
-    on a.rowid <> b.rowid
-    and a.x0 <= b.x0
-    and a.y0 <= b.y0
+    on a.rowid < b.rowid
+    -- and a.x0 <= b.x0
+    -- and a.y0 <= b.y0
 )
 , overlapping_claims as (
   select
     a
     , b
-    , case when ax0 < bx0 then bx0 else ax0 end x0
-    , case when ay0 < by0 then by0 else ay0 end y0
-    , case when ax1 < bx1 then ax1 else bx1 end x1
-    , case when ay1 < by1 then ay1 else by1 end y1
+    , case when bx0 between ax0 and ax1 then bx0 else ax0 end x0
+    , case when bx1 between ax0 and ax1 then bx1 else ax1 end x1
+    , case when by0 between ay0 and ay1 then by0 else ay0 end y0
+    , case when by1 between ay0 and ay1 then by1 else ay1 end y1
   from find_overlaps x
   where overlap = 1
 )
@@ -85,8 +85,8 @@ with claims as (
   inner join generate_series(y0, y1) y
     on y between oc.y0 and oc.y1
 )
--- select count(*) part_1 from unique_overlapping_claims
-select * from unique_overlapping_claims
+select count(*) part_1 from unique_overlapping_claims
+-- select * from find_overlaps
 ;
 EOF
 
