@@ -54,7 +54,7 @@ with claims as (
       when a.x1 >= b.x0
         and a.x0 <= b.x1
         and a.y1 >= b.y0
-        and b.y0 <= a.y1
+        and a.y0 <= b.y1
       then 1 else 0 end
     overlap
   from claims a
@@ -86,7 +86,7 @@ with claims as (
     on y between oc.y0 and oc.y1
 )
 select count(*) part_1 from unique_overlapping_claims
--- select * from find_overlaps
+--select * from find_overlaps
 ;
 EOF
 
