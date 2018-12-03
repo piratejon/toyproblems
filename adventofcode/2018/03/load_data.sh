@@ -44,7 +44,7 @@ with claims as (
       , b.a b
       , b.x0 bx0
       , b.y0 by0
-      , a.y1 bx1
+      , a.x1 bx1
       , b.y1 by1
       , case
         when a.x1 >= b.x0
