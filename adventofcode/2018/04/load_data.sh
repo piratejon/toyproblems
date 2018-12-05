@@ -42,20 +42,44 @@ with parse_inputs as (
     ) x
   ) x
 )
-select
-  _who, sleeptime, extract(minute from gsm) _gsm_m
-  , count(*)
-  , extract(minute from gsm)::int * _who::int part_1
-from (
+, one_row_per_minute as (
   select
     a, _what, _who, shift, window_start, window_stop
     , sum(case when _what = 'falls' then dur else 0 end) over (partition by _who) sleeptime
     , generate_series(window_start, coalesce(window_stop - interval'1'minute, window_start), interval'1' minute) gsm
   from parse_inputs
-) x
+)
+select
+*
+from (
+select
+  _who, sleeptime, extract(minute from gsm) _gsm_m
+  , count(*)
+  , extract(minute from gsm)::int * _who::int answer
+  , 'part_1'
+from one_row_per_minute
 where _what = 'falls'
 group by _who, sleeptime, _gsm_m
 order by sleeptime desc, count(*) desc
+limit 1
+) x
+
+union all
+
+select
+*
+from (
+select
+  _who, sleeptime, extract(minute from gsm) _gsm_m
+  , count(*)
+  , extract(minute from gsm)::int * _who::int answer
+  , 'part_2'
+from one_row_per_minute
+where _what = 'falls'
+group by _who, sleeptime, _gsm_m
+order by count(*) desc
+limit 1
+) y
 ;
 EOF
 
