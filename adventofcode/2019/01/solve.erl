@@ -21,7 +21,7 @@ part1() ->
   FuelWeights = lists:map(fun calculate_fuel/1, Weights),
   % io:fwrite("weights: ~w~n", [Weights]),
   % io:fwrite("fuel weights: ~w~n", [FuelWeights]),
-  io:fwrite("part1 : ~w~n", [lists:sum(FuelWeights)]).
+  io:fwrite("part1 ~w~n", [lists:sum(FuelWeights)]).
 
 part2_item_loop(Weight) ->
   ItemFuel = calculate_fuel(Weight),
