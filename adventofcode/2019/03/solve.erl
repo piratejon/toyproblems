@@ -79,4 +79,28 @@ part1() ->
   [{A, B} | _] = OrderedCrossings,
   io:fwrite("part1 ~w~n", [[{A, B}, manhattan_distance({A, B})]]).
 
-part2() -> [].
+list_index(List, Item) ->
+  {found, N} = list_index(List, Item, 0),
+  N.
+
+list_index(List, Item, Ctr) ->
+  case List of
+    [Item | Tail] -> {found, Ctr};
+    [_ | Tail] -> list_index(Tail, Item, Ctr + 1);
+    _ -> {not_found, -1}
+  end.
+
+sort_wrapper(Fun, A, B) ->
+  Fun(A) < Fun(B).
+
+part2() ->
+  Wires = fetch_input('input'),
+  [WireList1, WireList2] = [expand_wire(W) || W <- Wires],
+  Wire1 = sets:from_list(WireList1),
+  Wire2 = sets:from_list(WireList2),
+  Crossings = sets:intersection(Wire1, Wire2),
+  [_ | OrderedCrossings] = lists:sort(fun(A, B) -> manhattan_distance(A) < manhattan_distance(B) end, sets:to_list(Crossings)),
+  % doesn't have to be ordered but lets us pop (0,0) easily
+  [EarliestCrossing | _] = lists:sort(fun(A, B) -> sort_wrapper(fun(P) -> list_index(WireList1, P) + list_index(WireList2, P) end, A, B) end, OrderedCrossings),
+  {A, B} = {list_index(WireList1, EarliestCrossing), list_index(WireList2, EarliestCrossing)},
+  io:fwrite("part1 ~w~n", [[A, B, A + B]]).
