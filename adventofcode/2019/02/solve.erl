@@ -51,6 +51,22 @@ part1() ->
   {_, [Answer | _]} = bfoldl(fun part1_by_index/2, Patched, lists:seq(0, length(Patched) - 1, 4)),
   io:fwrite("part1 ~w~n", [Answer]).
 
+part2_inner(Program, Noun, Verb, ProgramWalker) ->
+  Patched = impute_at(impute_at(Program, 1, Noun), 2, Verb),
+  {_, [Output | _]} = bfoldl(fun part1_by_index/2, Patched, ProgramWalker),
+  Output.
+
+part2_what(Sought, Program, Walker, {Noun, Verb}, A) ->
+  case part2_inner(Program, Noun, Verb, Walker) of
+    Sought -> {break, {Noun, Verb}};
+    _ -> {ok, {Noun, Verb}}
+  end.
+
 part2() ->
-  [].
-  %part1().
+  Program = fetch_input('input'),
+  Range = lists:seq(0, 99),
+  Sought = 19690720,
+  Product = [{A, B} || A <- Range, B <- Range],
+  Walker = lists:seq(0, length(Program) - 1, 4),
+  {_, {Noun, Verb}} = bfoldl(fun(E,A) -> part2_what(Sought, Program, Walker, E, A) end, {ok, {-1, -1}}, Product),
+  io:fwrite("part2 ~w~n", [(100 * Noun) + Verb]).
